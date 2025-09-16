@@ -26,7 +26,18 @@ SELECT 1 AS hello;
 
   <!-- your script area -->
   <script>
-    // We'll fill this in the next steps.
+
+  const SEED_SQL = `
+CREATE TABLE products (
+  product_id INTEGER PRIMARY KEY,
+  name TEXT,
+  price REAL
+);
+INSERT INTO products VALUES
+  (1,'Headphones',79.00),
+  (2,'Keyboard',59.00),
+  (3,'Kettle',39.00);
+`;
   </script>
 </body>
 </html>
