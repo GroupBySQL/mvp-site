@@ -3,31 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SQL Playground</title>
+  <title>SQL Playground MVP</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    textarea { width: 100%; font-family: monospace; }
+    table { border-collapse: collapse; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 4px 8px; }
+    #results { margin-top: 15px; }
+    .ok { color: green; font-weight: bold; }
+    .warn { color: red; font-weight: bold; }
+    .small { font-size: 0.9em; }
+  </style>
 </head>
 <body>
   <h1>SQL Playground (MVP)</h1>
 
   <!-- editor -->
-  <textarea id="editor" rows="10" cols="80">-- Type SQL here, then click Run
-SELECT 1 AS hello;
-</textarea>
+  <textarea id="editor" rows="10" cols="80">-- Try it!
+SELECT * FROM products;</textarea>
   <br/>
 
   <!-- buttons -->
   <button id="run">Run</button>
   <button id="reset">Reset DB</button>
+  <button id="check">Submit (Grade)</button>
+  <span id="grade-status" class="small"></span>
 
-  <!-- results go here -->
-  <div id="results" style="margin-top:10px; border:1px solid #ddd; padding:10px;"></div>
+  <!-- results -->
+  <div id="results"></div>
+  <div id="grade-diff"></div>
 
-  <!-- sql.js (SQLite in the browser) -->
+  <!-- sql.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
 
-  <!-- your script area -->
   <script>
-
-  const SEED_SQL = `
+    // --- Seed dataset (tiny demo table) ---
+    const SEED_SQL = `
 CREATE TABLE products (
   product_id INTEGER PRIMARY KEY,
   name TEXT,
@@ -38,6 +49,138 @@ INSERT INTO products VALUES
   (2,'Keyboard',59.00),
   (3,'Kettle',39.00);
 `;
+
+    let db, SQL;
+
+    // Render results to HTML
+    function renderTable(result) {
+      if (!result || !result.columns) {
+        document.getElementById('results').innerHTML = '<em>No rows</em>';
+        return;
+      }
+      const { columns, values } = result;
+      let html = '<table><thead><tr>' + columns.map(c=>`<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+      for (const row of values) {
+        html += '<tr>' + row.map(v=>`<td>${v===null?'<i>null</i>':String(v)}</td>`).join('') + '</tr>';
+      }
+      html += '</tbody></table>';
+      document.getElementById('results').innerHTML = html;
+    }
+
+    // Boot: load SQL.js + seed DB
+    (async () => {
+      SQL = await initSqlJs({
+        locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}`
+      });
+      db = new SQL.Database();
+      db.run(SEED_SQL);
+      const res = db.exec("SELECT * FROM products");
+      renderTable(res[0]);
+    })();
+
+    // Run button
+    function runQuery() {
+      const sql = document.getElementById('editor').value;
+      try {
+        const results = db.exec(sql);
+        if (results.length === 0) {
+          document.getElementById('results').innerHTML = '<em>Query OK (no result set)</em>';
+        } else {
+          renderTable(results[0]);
+        }
+      } catch (e) {
+        document.getElementById('results').innerHTML = '<span class="warn">' + e.message + '</span>';
+      }
+    }
+    document.getElementById('run').addEventListener('click', runQuery);
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runQuery();
+    });
+
+    // Reset button
+    function resetDB() {
+      db = new SQL.Database();
+      db.run(SEED_SQL);
+      const res = db.exec("SELECT * FROM products");
+      renderTable(res[0]);
+      document.getElementById('grade-status').textContent = '';
+      document.getElementById('grade-diff').innerHTML = '';
+    }
+    document.getElementById('reset').addEventListener('click', resetDB);
+
+    // --- Grader (demo) ---
+    // Challenge: "Select all products ordered by product_id"
+    const SOLUTION_SQL = `SELECT product_id, name, price FROM products ORDER BY product_id;`;
+    const EXPECT_COLUMNS = ['product_id','name','price'];
+
+    function toTableHTML(res) {
+      if (!res || !res.length || !res[0].columns) return '<div class="small">No rows.</div>';
+      const { columns, values } = res[0];
+      let h = '<table><thead><tr>' + columns.map(c=>`<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+      for (const row of values) h += '<tr>' + row.map(v=>`<td>${v===null?'<i>null</i>':String(v)}</td>`).join('') + '</tr>';
+      h += '</tbody></table>';
+      return h;
+    }
+
+    function grade() {
+      const userSQL = document.getElementById('editor').value.trim();
+      const status = document.getElementById('grade-status');
+      const diffBox = document.getElementById('grade-diff');
+      status.textContent = '';
+      diffBox.innerHTML = '';
+
+      if (!/^select/i.test(userSQL)) {
+        status.textContent = 'Only SELECT queries are allowed.';
+        status.className = 'warn small';
+        return;
+      }
+
+      try {
+        // drop temp tables if exist
+        db.run('DROP TABLE IF EXISTS __user__;');
+        db.run('DROP TABLE IF EXISTS __truth__;');
+        db.run(`CREATE TEMP TABLE __user__ AS ${userSQL}`);
+        db.run(`CREATE TEMP TABLE __truth__ AS ${SOLUTION_SQL}`);
+
+        // check required columns
+        const info = db.exec("PRAGMA table_info(__user__)");
+        const cols = info[0].values.map(r => String(r[1]).toLowerCase());
+        const missing = EXPECT_COLUMNS.filter(c => !cols.includes(c.toLowerCase()));
+        if (missing.length) {
+          status.textContent = '❌ Missing column(s): ' + missing.join(', ');
+          status.className = 'warn small';
+          return;
+        }
+
+        // compare sets
+        const missingRows = db.exec("SELECT * FROM __truth__ EXCEPT SELECT * FROM __user__");
+        const extraRows   = db.exec("SELECT * FROM __user__ EXCEPT SELECT * FROM __truth__");
+
+        const hasMissing = missingRows.length && missingRows[0].values.length;
+        const hasExtra   = extraRows.length && extraRows[0].values.length;
+
+        if (!hasMissing && !hasExtra) {
+          status.textContent = '✅ Correct!';
+          status.className = 'ok small';
+        } else {
+          status.textContent = '❌ Not quite — see differences below.';
+          status.className = 'warn small';
+          let out = '';
+          if (hasMissing) {
+            out += '<div class="small">Missing rows:</div>' + toTableHTML(missingRows);
+          }
+          if (hasExtra) {
+            out += '<div class="small">Extra rows:</div>' + toTableHTML(extraRows);
+          }
+          diffBox.innerHTML = out;
+        }
+      } catch (e) {
+        status.textContent = 'Error grading: ' + e.message;
+        status.className = 'warn small';
+      }
+    }
+
+    document.getElementById('check').addEventListener('click', grade);
   </script>
 </body>
 </html>
