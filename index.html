@@ -1,13 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My MVP Site</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Group by SQL</title>
+  <meta name="description" content="Practice real-world SQL, not just puzzles. MVP in progress." />
+
+  <!-- Basic, readable styles (no frameworks) -->
+  <style>
+    :root { --maxw: 740px; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      color: #1f2937;
+      background: #f9fafb;
+      display: flex; align-items: center; justify-content: center;
+      padding: 32px;
+    }
+    .wrap {
+      width: 100%; max-width: var(--maxw);
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 16px;
+      padding: 28px; box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+    header { margin-bottom: 16px; }
+    h1 { margin: 0 0 4px; font-size: 28px; }
+    .tagline { margin: 0; color: #6b7280; font-size: 16px; }
+    .status {
+      display: inline-block; margin: 12px 0 4px; padding: 4px 10px;
+      font-size: 12px; border-radius: 999px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;
+    }
+    main p { margin: 8px 0 0; }
+    ul { margin: 12px 0 0 18px; }
+    li { margin: 6px 0; }
+    .note {
+      margin-top: 16px; padding: 10px 12px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 10px;
+      font-size: 14px; color: #374151;
+    }
+    footer {
+      margin-top: 18px; font-size: 14px; color: #6b7280; display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    a { color: #1d4ed8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code { background:#f3f4f6; padding:2px 6px; border-radius:6px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  </style>
 </head>
 <body>
-  <h1>Hello MVP World!</h1>
-  <p>🚀 This is my very first launch page.</p>
-  <p>Stay tuned for updates!</p>
+  <div class="wrap">
+    <header>
+      <h1>Group by SQL</h1>
+      <p class="tagline">Practice real-world SQL — not just puzzles. MVP in progress.</p>
+      <span class="status">Status: Building MVP</span>
+    </header>
+
+    <main>
+      <p>What this will be:</p>
+      <ul>
+        <li>Scenario-based SQL practice (multi-step tasks, realistic schemas).</li>
+        <li>Answer checks that go beyond “passes/leaks” — focus on correctness & habits.</li>
+        <li>Clear explanations of <em>why</em> solutions work (NOT EXISTS vs LEFT JOIN, sargable time windows, etc.).</li>
+      </ul>
+
+      <div class="note">
+        <strong>Today’s goal:</strong> get the site live on <code>groupbysql.com</code> via GitHub Pages.  
+        If you’re seeing this, DNS/HTTPS may still be propagating.
+      </div>
+
+      <!-- Optional (enable later)
+      <p><a href="mailto:hello@groupbysql.com">Contact</a> · <a href="#waitlist">Join waitlist</a></p>
+      -->
+    </main>
+
+    <footer>
+      <span>© <span id="y"></span> Group by SQL</span>
+      <span>·</span>
+      <a href="https://github.com/groupbysql/mvp-site">GitHub repo</a>
+    </footer>
+  </div>
+
+  <script>
+    // auto-update year
+    document.getElementById('y').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
