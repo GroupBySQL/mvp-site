@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SQL Playground</title>
+</head>
+<body>
+  <h1>SQL Playground (MVP)</h1>
+
+  <!-- editor -->
+  <textarea id="editor" rows="10" cols="80">-- Type SQL here, then click Run
+SELECT 1 AS hello;
+</textarea>
+  <br/>
+
+  <!-- buttons -->
+  <button id="run">Run</button>
+  <button id="reset">Reset DB</button>
+
+  <!-- results go here -->
+  <div id="results" style="margin-top:10px; border:1px solid #ddd; padding:10px;"></div>
+
+  <!-- sql.js (SQLite in the browser) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+
+  <!-- your script area -->
+  <script>
+    // We'll fill this in the next steps.
+  </script>
+</body>
+</html>
