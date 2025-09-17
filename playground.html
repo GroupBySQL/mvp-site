@@ -2,42 +2,78 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SQL Playground MVP</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SQL Playground</title>
   <style>
-    body { font-family: sans-serif; margin: 20px; }
-    textarea { width: 100%; font-family: monospace; }
-    table { border-collapse: collapse; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 4px 8px; }
-    #results { margin-top: 15px; }
-    .ok { color: green; font-weight: bold; }
-    .warn { color: red; font-weight: bold; }
-    .small { font-size: 0.9em; }
+    :root { --border:#e5e7eb; --muted:#6b7280; --ok:#16a34a; --warn:#dc2626; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:#111; }
+    header { padding: 16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+    header h1 { margin:0; font-size:18px; }
+    #status { color: var(--muted); font-size:14px; }
+    main { display:grid; grid-template-columns: 360px 1fr; gap: 16px; padding:16px; }
+    @media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+    .panel { border:1px solid var(--border); border-radius:12px; background:#fff; min-height:200px; }
+    .panel .pad { padding:16px; }
+    .panel h2 { margin:0 0 8px; font-size:16px; }
+    .muted { color: var(--muted); }
+    textarea { width:100%; min-height:260px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border:1px solid var(--border); border-radius:10px; padding:10px; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px; }
+    button { padding:8px 12px; border-radius:10px; border:1px solid #cfcfcf; background:#fff; cursor:pointer; }
+    button.primary { background:#111; color:#fff; border-color:#111; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    #results { margin-top:12px; border:1px solid var(--border); border-radius:10px; padding:10px; min-height:52px; }
+    table { border-collapse:collapse; width:100%; }
+    th,td { border:1px solid var(--border); padding:6px 8px; text-align:left; }
+    th { background:#f9fafb; }
+    .ok { color:var(--ok); font-weight:600; }
+    .warn { color:var(--warn); font-weight:600; }
   </style>
 </head>
 <body>
-  <h1>SQL Playground (MVP)</h1>
+  <header>
+    <h1>SQL Playground</h1>
+    <div id="status" class="muted">Loading SQL engine…</div>
+  </header>
 
-  <!-- editor -->
-  <textarea id="editor" rows="10" cols="80">-- Try it!
-SELECT * FROM products;</textarea>
-  <br/>
+  <main>
+    <!-- LEFT: placeholder only (we'll add problems/schema later) -->
+    <section class="panel">
+      <div class="pad">
+        <h2>Workspace</h2>
+        <p class="muted">This panel is for problem text / schema later. For now, just use the editor on the right.</p>
+        <ul class="muted" style="margin-top:8px; padding-left:18px;">
+          <li>Two-pane layout is ready</li>
+          <li>Editor + Run works</li>
+          <li>Reset DB restores seed data</li>
+        </ul>
+      </div>
+    </section>
 
-  <!-- buttons -->
-  <button id="run">Run</button>
-  <button id="reset">Reset DB</button>
-  <button id="check">Submit (Grade)</button>
-  <span id="grade-status" class="small"></span>
+    <!-- RIGHT: editor + run/results -->
+    <section class="panel">
+      <div class="pad">
+        <h2>Editor</h2>
+        <textarea id="editor">-- Try it: returns all products
+SELECT product_id, name, price
+FROM products
+ORDER BY product_id;</textarea>
 
-  <!-- results -->
-  <div id="results"></div>
-  <div id="grade-diff"></div>
+        <div class="toolbar">
+          <button id="run" class="primary" disabled title="Ctrl/Cmd + Enter">Run</button>
+          <button id="reset" disabled>Reset DB</button>
+          <span id="run-info" class="muted"></span>
+        </div>
 
-  <!-- sql.js -->
+        <div id="results" class="muted">Run a query to see results here.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- sql.js (SQLite in the browser) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
-
   <script>
-    // --- Seed dataset (tiny demo table) ---
+    // Minimal seed so users can run something immediately
     const SEED_SQL = `
 CREATE TABLE products (
   product_id INTEGER PRIMARY KEY,
@@ -50,137 +86,91 @@ INSERT INTO products VALUES
   (3,'Kettle',39.00);
 `;
 
-    let db, SQL;
+    let SQL, db;
+    const els = {
+      status: document.getElementById('status'),
+      editor: document.getElementById('editor'),
+      run: document.getElementById('run'),
+      reset: document.getElementById('reset'),
+      runInfo: document.getElementById('run-info'),
+      results: document.getElementById('results')
+    };
 
-    // Render results to HTML
-    function renderTable(result) {
+    function setReady(on) {
+      els.run.disabled = !on;
+      els.reset.disabled = !on;
+      els.status.textContent = on ? 'Ready' : 'Loading SQL engine…';
+      els.status.className = on ? 'muted' : 'muted';
+    }
+
+    function render(result) {
       if (!result || !result.columns) {
-        document.getElementById('results').innerHTML = '<em>No rows</em>';
+        els.results.innerHTML = '<span class="muted">No rows.</span>';
         return;
       }
       const { columns, values } = result;
       let html = '<table><thead><tr>' + columns.map(c=>`<th>${c}</th>`).join('') + '</tr></thead><tbody>';
-      for (const row of values) {
-        html += '<tr>' + row.map(v=>`<td>${v===null?'<i>null</i>':String(v)}</td>`).join('') + '</tr>';
-      }
+      for (const row of values) html += '<tr>' + row.map(v=>`<td>${v===null?'<i>null</i>':String(v)}</td>`).join('') + '</tr>';
       html += '</tbody></table>';
-      document.getElementById('results').innerHTML = html;
+      els.results.innerHTML = html;
     }
 
-    // Boot: load SQL.js + seed DB
-    (async () => {
-      SQL = await initSqlJs({
-        locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}`
-      });
-      db = new SQL.Database();
-      db.run(SEED_SQL);
-      const res = db.exec("SELECT * FROM products");
-      renderTable(res[0]);
-    })();
+    async function boot() {
+      try {
+        setReady(false);
+        SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}` });
+        db = new SQL.Database();
+        db.run(SEED_SQL);
+        // show initial table quickly
+        const res = db.exec('SELECT * FROM products');
+        if (res.length) { els.results.classList.remove('muted'); render(res[0]); }
+        setReady(true);
+      } catch (e) {
+        els.status.textContent = 'Failed to load SQL engine: ' + e.message;
+        els.status.className = 'warn';
+      }
+    }
 
-    // Run button
     function runQuery() {
-      const sql = document.getElementById('editor').value;
+      if (!db) { els.results.innerHTML = '<span class="warn">DB not ready.</span>'; return; }
+      const sql = els.editor.value.trim();
+      els.runInfo.textContent = 'Running…';
+      const t0 = performance.now();
       try {
         const results = db.exec(sql);
-        if (results.length === 0) {
-          document.getElementById('results').innerHTML = '<em>Query OK (no result set)</em>';
+        const ms = Math.max(1, Math.round(performance.now() - t0));
+        if (!results.length) {
+          els.results.innerHTML = '<span class="muted">Query OK (no rows)</span>';
+          els.runInfo.textContent = `Time: ${ms} ms`;
         } else {
-          renderTable(results[0]);
+          render(results[0]);
+          const rows = results[0].values.length;
+          els.runInfo.textContent = `Rows: ${rows} • Time: ${ms} ms`;
         }
       } catch (e) {
-        document.getElementById('results').innerHTML = '<span class="warn">' + e.message + '</span>';
+        els.results.innerHTML = '<span class="warn">' + e.message + '</span>';
+        els.runInfo.textContent = '';
       }
     }
+
+    function resetDB() {
+      db = new SQL.Database();
+      db.run(SEED_SQL);
+      const res = db.exec('SELECT * FROM products');
+      els.results.classList.remove('muted');
+      render(res[0]);
+      els.runInfo.textContent = 'DB reset';
+    }
+
+    // wire events
     document.getElementById('run').addEventListener('click', runQuery);
+    document.getElementById('reset').addEventListener('click', resetDB);
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runQuery();
     });
 
-    // Reset button
-    function resetDB() {
-      db = new SQL.Database();
-      db.run(SEED_SQL);
-      const res = db.exec("SELECT * FROM products");
-      renderTable(res[0]);
-      document.getElementById('grade-status').textContent = '';
-      document.getElementById('grade-diff').innerHTML = '';
-    }
-    document.getElementById('reset').addEventListener('click', resetDB);
-
-    // --- Grader (demo) ---
-    // Challenge: "Select all products ordered by product_id"
-    const SOLUTION_SQL = `SELECT product_id, name, price FROM products ORDER BY product_id;`;
-    const EXPECT_COLUMNS = ['product_id','name','price'];
-
-    function toTableHTML(res) {
-      if (!res || !res.length || !res[0].columns) return '<div class="small">No rows.</div>';
-      const { columns, values } = res[0];
-      let h = '<table><thead><tr>' + columns.map(c=>`<th>${c}</th>`).join('') + '</tr></thead><tbody>';
-      for (const row of values) h += '<tr>' + row.map(v=>`<td>${v===null?'<i>null</i>':String(v)}</td>`).join('') + '</tr>';
-      h += '</tbody></table>';
-      return h;
-    }
-
-    function grade() {
-      const userSQL = document.getElementById('editor').value.trim();
-      const status = document.getElementById('grade-status');
-      const diffBox = document.getElementById('grade-diff');
-      status.textContent = '';
-      diffBox.innerHTML = '';
-
-      if (!/^select/i.test(userSQL)) {
-        status.textContent = 'Only SELECT queries are allowed.';
-        status.className = 'warn small';
-        return;
-      }
-
-      try {
-        // drop temp tables if exist
-        db.run('DROP TABLE IF EXISTS __user__;');
-        db.run('DROP TABLE IF EXISTS __truth__;');
-        db.run(`CREATE TEMP TABLE __user__ AS ${userSQL}`);
-        db.run(`CREATE TEMP TABLE __truth__ AS ${SOLUTION_SQL}`);
-
-        // check required columns
-        const info = db.exec("PRAGMA table_info(__user__)");
-        const cols = info[0].values.map(r => String(r[1]).toLowerCase());
-        const missing = EXPECT_COLUMNS.filter(c => !cols.includes(c.toLowerCase()));
-        if (missing.length) {
-          status.textContent = '❌ Missing column(s): ' + missing.join(', ');
-          status.className = 'warn small';
-          return;
-        }
-
-        // compare sets
-        const missingRows = db.exec("SELECT * FROM __truth__ EXCEPT SELECT * FROM __user__");
-        const extraRows   = db.exec("SELECT * FROM __user__ EXCEPT SELECT * FROM __truth__");
-
-        const hasMissing = missingRows.length && missingRows[0].values.length;
-        const hasExtra   = extraRows.length && extraRows[0].values.length;
-
-        if (!hasMissing && !hasExtra) {
-          status.textContent = '✅ Correct!';
-          status.className = 'ok small';
-        } else {
-          status.textContent = '❌ Not quite — see differences below.';
-          status.className = 'warn small';
-          let out = '';
-          if (hasMissing) {
-            out += '<div class="small">Missing rows:</div>' + toTableHTML(missingRows);
-          }
-          if (hasExtra) {
-            out += '<div class="small">Extra rows:</div>' + toTableHTML(extraRows);
-          }
-          diffBox.innerHTML = out;
-        }
-      } catch (e) {
-        status.textContent = 'Error grading: ' + e.message;
-        status.className = 'warn small';
-      }
-    }
-
-    document.getElementById('check').addEventListener('click', grade);
+    // start
+    boot();
   </script>
 </body>
 </html>
