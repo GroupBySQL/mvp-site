@@ -17,18 +17,28 @@
     .panel .pad { padding:16px; }
     .panel h2 { margin:0 0 8px; font-size:16px; }
     .muted { color: var(--muted); }
+    /* Editor (textarea fallback) */
     textarea { width:100%; min-height:260px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border:1px solid var(--border); border-radius:10px; padding:10px; }
     .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px; }
     button { padding:8px 12px; border-radius:10px; border:1px solid #cfcfcf; background:#fff; cursor:pointer; }
     button.primary { background:#111; color:#fff; border-color:#111; }
     button:disabled { opacity:.5; cursor:not-allowed; }
-    #results { margin-top:12px; border:1px solid var(--border); border-radius:10px; padding:10px; min-height:52px; }
+    #results { margin-top:12px; border:1px solid var(--border); border-radius:10px; padding:10px; min-height:52px; overflow:auto; }
     table { border-collapse:collapse; width:100%; }
     th,td { border:1px solid var(--border); padding:6px 8px; text-align:left; }
-    th { background:#f9fafb; }
+    th { background:#f9fafb; position:sticky; top:0; }
+    td.col-idx, th.col-idx { width:56px; text-align:right; color:#6b7280; background:#fafafa; position:sticky; left:0; }
+    tr:nth-child(even) td { background:#fcfcfc; }
     .ok { color:var(--ok); font-weight:600; }
     .warn { color:var(--warn); font-weight:600; }
+
+    /* CodeMirror (SQL highlighting) */
+    .CodeMirror { border:1px solid var(--border); border-radius:10px; height:260px; }
   </style>
+
+  <!-- CodeMirror (SQL syntax highlighting) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/neo.min.css">
 </head>
 <body>
   <header>
@@ -37,16 +47,11 @@
   </header>
 
   <main>
-    <!-- LEFT: placeholder only (we'll add problems/schema later) -->
+    <!-- LEFT: placeholder only -->
     <section class="panel">
       <div class="pad">
         <h2>Workspace</h2>
         <p class="muted">This panel is for problem text / schema later. For now, just use the editor on the right.</p>
-        <ul class="muted" style="margin-top:8px; padding-left:18px;">
-          <li>Two-pane layout is ready</li>
-          <li>Editor + Run works</li>
-          <li>Reset DB restores seed data</li>
-        </ul>
       </div>
     </section>
 
@@ -72,6 +77,10 @@ ORDER BY product_id;</textarea>
 
   <!-- sql.js (SQLite in the browser) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+  <!-- CodeMirror scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+
   <script>
     // Minimal seed so users can run something immediately
     const SEED_SQL = `
@@ -86,7 +95,7 @@ INSERT INTO products VALUES
   (3,'Kettle',39.00);
 `;
 
-    let SQL, db;
+    let SQL, db, cm = null;
     const els = {
       status: document.getElementById('status'),
       editor: document.getElementById('editor'),
@@ -103,27 +112,58 @@ INSERT INTO products VALUES
       els.status.className = on ? 'muted' : 'muted';
     }
 
+    function getSQL() {
+      return cm ? cm.getValue() : els.editor.value;
+    }
+
     function render(result) {
       if (!result || !result.columns) {
         els.results.innerHTML = '<span class="muted">No rows.</span>';
         return;
       }
       const { columns, values } = result;
-      let html = '<table><thead><tr>' + columns.map(c=>`<th>${c}</th>`).join('') + '</tr></thead><tbody>';
-      for (const row of values) html += '<tr>' + row.map(v=>`<td>${v===null?'<i>null</i>':String(v)}</td>`).join('') + '</tr>';
+      // Build header with row-index column
+      let html = '<table><thead><tr>';
+      html += '<th class="col-idx">#</th>';
+      html += columns.map(c=>`<th>${c}</th>`).join('');
+      html += '</tr></thead><tbody>';
+      // Rows with index
+      for (let i=0; i<values.length; i++) {
+        const row = values[i];
+        html += '<tr>';
+        html += `<td class="col-idx">${i+1}</td>`;
+        html += row.map(v=>`<td>${v===null?'<i>null</i>':String(v)}</td>`).join('');
+        html += '</tr>';
+      }
       html += '</tbody></table>';
       els.results.innerHTML = html;
+      els.results.classList.remove('muted');
     }
 
     async function boot() {
       try {
         setReady(false);
+        // Init CodeMirror (syntax highlighting)
+        if (window.CodeMirror) {
+          cm = CodeMirror.fromTextArea(els.editor, {
+            mode: 'text/x-sql',
+            theme: 'neo',
+            lineNumbers: true,
+            autofocus: true
+          });
+          // Keyboard shortcuts
+          cm.addKeyMap({
+            'Ctrl-Enter': runQuery,
+            'Cmd-Enter': runQuery
+          });
+        }
+        // Load SQL.js and seed DB
         SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}` });
         db = new SQL.Database();
         db.run(SEED_SQL);
         // show initial table quickly
         const res = db.exec('SELECT * FROM products');
-        if (res.length) { els.results.classList.remove('muted'); render(res[0]); }
+        if (res.length) render(res[0]);
         setReady(true);
       } catch (e) {
         els.status.textContent = 'Failed to load SQL engine: ' + e.message;
@@ -133,7 +173,7 @@ INSERT INTO products VALUES
 
     function runQuery() {
       if (!db) { els.results.innerHTML = '<span class="warn">DB not ready.</span>'; return; }
-      const sql = els.editor.value.trim();
+      const sql = getSQL().trim();
       els.runInfo.textContent = 'Running…';
       const t0 = performance.now();
       try {
@@ -157,7 +197,6 @@ INSERT INTO products VALUES
       db = new SQL.Database();
       db.run(SEED_SQL);
       const res = db.exec('SELECT * FROM products');
-      els.results.classList.remove('muted');
       render(res[0]);
       els.runInfo.textContent = 'DB reset';
     }
@@ -166,7 +205,7 @@ INSERT INTO products VALUES
     document.getElementById('run').addEventListener('click', runQuery);
     document.getElementById('reset').addEventListener('click', resetDB);
     document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runQuery();
+      if (!cm && (e.ctrlKey || e.metaKey) && e.key === 'Enter') runQuery(); // textarea fallback
     });
 
     // start
