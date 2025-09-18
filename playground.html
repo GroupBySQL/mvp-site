@@ -23,16 +23,17 @@
     header h1{ margin:0; font-size:18px }
     #status{ color:var(--muted); font-size:14px }
 
+    /* 50/50 layout, responsive */
     main{
-      max-width:1200px; margin:0 auto;
-      display:grid; grid-template-columns:minmax(260px, 380px) 1fr;
+      max-width:1400px; margin:0 auto;
+      display:grid; grid-template-columns: repeat(2, minmax(0, 1fr));
       gap:16px; padding:16px
     }
     @media (max-width: 900px){
       main{ grid-template-columns:1fr }
     }
 
-    .panel{ border:1px solid var(--border); border-radius:12px; background:#fff; }
+    .panel{ border:1px solid var(--border); border-radius:12px; background:#fff; min-width:0; }
     .panel .pad{ padding:16px }
     .panel h2{ margin:0 0 8px; font-size:16px }
     .muted{ color:var(--muted) }
@@ -74,16 +75,22 @@
       table{ min-width:480px }
     }
 
-    /* Schema cards */
-    #schema .card{ border:1px solid var(--border); border-radius:10px; padding:10px; margin-top:10px; background:#fff }
-    .table-name{ font-weight:700 }
+    /* Schema (LeetCode-style) */
+    #schema .schema-block{ margin-top:12px }
+    #schema .schema-title{ font-weight:600; margin-bottom:6px }
+    #schema .schema-title .tag{
+      display:inline-block; padding:2px 8px; border-radius:999px;
+      font-size:12px; background:#eef2f7; border:1px solid #e5e7eb;
+    }
+    pre.ascii{
+      background:#f9fafb; border:1px solid var(--border); border-radius:10px;
+      padding:10px; overflow:auto; margin:8px 0; font-size:13px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      line-height:1.35;
+    }
     #question{ white-space:pre-wrap; margin-top:8px }
     #schema code{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace }
-
-    /* Minor spacing tweaks on small screens */
-    @media (max-width:600px){
-      .panel .pad{ padding:12px }
-    }
+    @media (max-width:600px){ .panel .pad{ padding:12px } }
   </style>
 
   <!-- CodeMirror -->
@@ -159,7 +166,7 @@
     // App state
     const APP = {
       challenges: [],
-      current: null,         // {id,title,description,seed,starter,solution,expect_columns}
+      current: null,         // {id,title,description,description_file,seed,starter,solution,expect_columns}
       seedSQL: '',
       starterSQL: '',
       solutionSQL: '',
@@ -202,38 +209,48 @@
       els.results.classList.remove('muted');
     }
 
+    // ----- LeetCode-style Schema Renderer -----
     function renderSchema() {
       try {
         const res = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
         const tables = res.length ? res[0].values.map(r => r[0]) : [];
         if (!tables.length) { els.schema.innerHTML = '<em>No tables found.</em>'; return; }
 
+        // helpers
+        const pad = (s, n) => String(s) + ' '.repeat(Math.max(0, n - String(s).length));
+        const asciiTable = (cols) => {
+          const nameW = Math.max('Column Name'.length, ...cols.map(c => String(c.name).length));
+          const typeW = Math.max('Type'.length, ...cols.map(c => String(c.type || '').length));
+          const line  = '+' + '-'.repeat(nameW+2) + '+' + '-'.repeat(typeW+2) + '+';
+          let out = '';
+          out += line + '\n';
+          out += `| ${pad('Column Name', nameW)} | ${pad('Type', typeW)} |\n`;
+          out += line + '\n';
+          for (const c of cols) out += `| ${pad(c.name, nameW)} | ${pad(c.type || '', typeW)} |\n`;
+          out += line;
+          return out;
+        };
+
         let html = '';
         for (const t of tables) {
           const colsRes = db.exec(`PRAGMA table_info(${t})`);
-          const cols = colsRes.length ? colsRes[0].values : [];
+          const cols = (colsRes.length ? colsRes[0].values : []).map(r => ({
+            name: r[1], type: r[2] || '', pk: r[5] ? Number(r[5]) : 0
+          }));
+          const pkCols = cols.filter(c => c.pk > 0).sort((a,b)=>a.pk-b.pk).map(c => c.name);
 
-          const fkRes = db.exec(`PRAGMA foreign_key_list(${t})`);
-          const fks = fkRes.length ? fkRes[0].values : [];
+          html += `<div class="schema-block">`;
+          html += `<div class="schema-title">Table: <span class="tag">${t}</span></div>`;
+          html += `<pre class="ascii">${asciiTable(cols)}</pre>`;
 
-          html += `<div class="card">
-            <div class="table-name">${t}</div>
-            <div class="muted">Columns:</div>
-            <ul>`;
-          for (const c of cols) {
-            const name = c[1], type = c[2] || '';
-            const pk = c[5] ? ' [PK]' : '';
-            html += `<li><code>${name}</code> <span class="muted">${type}${pk}</span></li>`;
+          if (pkCols.length === 1) {
+            html += `<div class="muted"><code>${pkCols[0]}</code> is the primary key (column with unique values) for this table.</div>`;
+          } else if (pkCols.length > 1) {
+            html += `<div class="muted">(<code>${pkCols.join(', ')}</code>) is the primary key (combination of columns with unique values) for this table.</div>`;
+          } else {
+            html += `<div class="muted">This table does not declare a primary key.</div>`;
           }
-          html += `</ul>`;
-          if (fks.length) {
-            html += `<div class="muted" style="margin-top:6px;">Relationships:</div><ul>`;
-            for (const fk of fks) {
-              const refTable = fk[2], fromCol = fk[3], toCol = fk[4];
-              html += `<li><code>${t}.${fromCol}</code> → <code>${refTable}.${toCol}</code></li>`;
-            }
-            html += `</ul>`;
-          }
+
           html += `</div>`;
         }
         els.schema.innerHTML = html;
@@ -241,6 +258,7 @@
         els.schema.innerHTML = '<span class="warn">Error loading schema: ' + e.message + '</span>';
       }
     }
+    // ------------------------------------------
 
     async function boot() {
       try {
@@ -303,9 +321,18 @@
         db = new SQL.Database();
         db.run(APP.seedSQL);
 
+        // Load description: prefer file if provided, else inline text
+        let desc = meta.description || '';
+        if (meta.description_file) {
+          try {
+            const d = await fetch(meta.description_file);
+            if (d.ok) desc = await d.text();
+          } catch(_) {}
+        }
+
         // UI text
         els.challengeTitle.textContent = meta.title || '';
-        els.question.textContent = meta.description || 'No description provided.';
+        els.question.textContent = desc || 'No description provided.';
 
         // Put starter SQL in editor
         setSQL(APP.starterSQL);
