@@ -8,7 +8,7 @@
     :root{
       --border:#e5e7eb; --muted:#6b7280;
       --ok:#16a34a; --ok-d:#15803d;
-      --warn:#dc2626; --bg:#f3f4f6; /* light gray page bg */
+      --warn:#dc2626; --bg:#f3f4f6;
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -23,7 +23,6 @@
     header h1{ margin:0; font-size:18px }
     #status{ color:var(--muted); font-size:14px }
 
-    /* 50/50 layout, responsive */
     main{
       max-width:1400px; margin:0 auto;
       display:grid; grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -36,7 +35,7 @@
     .panel{ border:1px solid var(--border); border-radius:12px; background:#fff; min-width:0; }
     .panel .pad{ padding:16px }
     .panel h2{ margin:0 0 8px; font-size:16px }
-    .muted{ color:var(--muted) }
+    .muted{ color: var(--muted) }
 
     select,button{
       padding:8px 12px; border-radius:10px; border:1px solid #cfcfcf; background:#fff
@@ -48,27 +47,24 @@
 
     .toolbar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px }
 
-    /* Editor */
     .CodeMirror{
       border:1px solid var(--border); border-radius:10px;
       height:clamp(220px, 45vh, 520px); background:#fff; width:100%;
     }
     textarea{ width:100%; min-height:220px; }
 
-    /* Results / tables */
     #results{
       margin-top:12px; border:1px solid var(--border); border-radius:10px;
       padding:10px; min-height:52px; max-height:clamp(160px, 38vh, 460px);
       overflow:auto; background:#fff;
     }
     #grade-diff{ margin-top:10px; overflow:auto }
-    .table-wrap{ width:100%; overflow:auto } /* horizontal scroll on small screens */
+    .table-wrap{ width:100%; overflow:auto }
     table{ border-collapse:collapse; width:100%; min-width:600px; }
     th,td{ border:1px solid var(--border); padding:6px 8px; text-align:left; vertical-align:top; overflow-wrap:anywhere }
     th{ background:#f9fafb; position:sticky; top:0; }
     td.col-idx, th.col-idx{ width:56px; text-align:right; color:#6b7280; background:#fafafa; position:sticky; left:0 }
     tr:nth-child(even) td{ background:#fcfcfc }
-    /* On narrow screens, disable sticky to prevent clipping */
     @media (max-width: 700px){
       th{ position:static }
       td.col-idx, th.col-idx{ position:static }
@@ -90,7 +86,14 @@
     }
     #question{ white-space:pre-wrap; margin-top:8px }
     #schema code{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace }
-    @media (max-width:600px){ .panel .pad{ padding:12px } }
+
+    details{ border:1px solid var(--border); border-radius:10px; padding:8px 12px; margin:8px 0; background:#fff }
+    summary{ font-weight:600; cursor:pointer }
+    .hint{ color:#374151; font-size:14px }
+
+    .callout{ background:#fefce8; border:1px solid #f59e0b; padding:8px 10px; border-radius:8px; color:#723b13; margin-top:6px }
+    .ok{ color:var(--ok); font-weight:600 }
+    .warn{ color:var(--warn); font-weight:600 }
   </style>
 
   <!-- CodeMirror -->
@@ -104,18 +107,68 @@
   </header>
 
   <main>
-    <!-- LEFT: challenge selector + question + schema -->
+    <!-- LEFT: challenge, collapsible parts, schema, check picker -->
     <section class="panel">
       <div class="pad">
         <h2>Workspace</h2>
+
         <label class="muted" for="challenge">Challenge</label><br/>
         <select id="challenge" style="margin-top:6px; width:100%"></select>
 
-        <h3 id="challenge-title" style="margin-top:12px;"></h3>
+        <h3 id="challenge-title" style="margin-top:10px;"></h3>
         <div id="question" class="muted">Select a challenge to load its instructions.</div>
 
-        <h3 style="margin-top:12px;">Schema</h3>
+        <!-- Collapsible parts -->
+        <details open>
+          <summary>Part 1 — Data audit (Easy)</summary>
+          <div class="hint">
+            Explore gaps before classifying:
+            <ul>
+              <li>A) Accounts without an active deployment</li>
+              <li>B) Telemetry by source (last 365 days)</li>
+              <li>C) Accounts with both Cloud & OnPrem telemetry (last 365 days)</li>
+            </ul>
+            <div class="callout">Tip: use <code>DATE(MAX(seen_at), '-365 day')</code> for the window.</div>
+          </div>
+        </details>
+
+        <details>
+          <summary>Part 2 — Per-account flags (Medium)</summary>
+          <div class="hint">
+            Conservative rule: <b>Active &gt; Telemetry</b>. Output columns:
+            <code>account_id, customer_id, has_cloud_flag, has_onprem_flag, account_hybrid_flag, source_of_truth</code>.
+          </div>
+        </details>
+
+        <details>
+          <summary>Part 3 — Customer roll-up (Easy)</summary>
+          <div class="hint">
+            Hybrid if both flags; Cloud/OnPrem if one; None if neither.
+            Output: <code>customer_id, deployment_model</code>.
+          </div>
+        </details>
+
+        <details>
+          <summary>Part 4 — Executive summary (Optional)</summary>
+          <div class="hint">Counts + % by <code>deployment_model</code>.</div>
+        </details>
+
+        <h3 style="margin-top:10px;">Schema</h3>
         <div id="schema" class="muted">Loading schema…</div>
+
+        <h3 style="margin-top:10px;">Check a Part</h3>
+        <div class="hint">Choose what you’re checking and hit <b>Check</b>. Part 3 uses the final grader.</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px">
+          <select id="which-check">
+            <option value="1A">Part 1A — No active</option>
+            <option value="1B">Part 1B — Telemetry by source</option>
+            <option value="1C">Part 1C — Both signals</option>
+            <option value="2">Part 2 — Per-account flags</option>
+            <option value="3">Part 3 — Final roll-up</option>
+          </select>
+          <button id="mini-check">Check</button>
+          <span id="mini-status" class="muted"></span>
+        </div>
       </div>
     </section>
 
@@ -160,27 +213,31 @@
       runInfo: document.getElementById('run-info'),
       gradeStatus: document.getElementById('grade-status'),
       gradeDiff: document.getElementById('grade-diff'),
-      results: document.getElementById('results')
+      results: document.getElementById('results'),
+      whichCheck: document.getElementById('which-check'),
+      miniCheckBtn: document.getElementById('mini-check'),
+      miniStatus: document.getElementById('mini-status')
     };
 
     // App state
     const APP = {
       challenges: [],
-      current: null,         // {id,title,description,description_file,seed,starter,solution,expect_columns}
+      current: null,         // current challenge meta
       seedSQL: '',
       starterSQL: '',
       solutionSQL: '',
       expectColumns: []
     };
 
+    /* -------------------------------- UI helpers -------------------------------- */
     function setReady(on) {
       els.run.disabled = !on;
       els.reset.disabled = !on;
       els.check.disabled = !on;
+      els.miniCheckBtn.disabled = !on;
       els.status.textContent = on ? 'Ready' : 'Loading…';
       els.status.className = on ? 'muted' : 'muted';
     }
-
     function getSQL() { return cm ? cm.getValue() : els.editorTA.value; }
     function setSQL(s) { if (cm) cm.setValue(s); else els.editorTA.value = s; }
 
@@ -200,23 +257,19 @@
       html += '</tbody></table></div>';
       return html;
     }
-
     function renderTable(result) {
-      if (!result || !result.columns) {
-        els.results.innerHTML = '<span class="muted">No rows.</span>'; return;
-      }
+      if (!result || !result.columns) { els.results.innerHTML = '<span class="muted">No rows.</span>'; return; }
       els.results.innerHTML = tableHTML(result);
       els.results.classList.remove('muted');
     }
 
-    // ----- LeetCode-style Schema Renderer -----
+    /* ---------------------------- Schema renderer ---------------------------- */
     function renderSchema() {
       try {
         const res = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
         const tables = res.length ? res[0].values.map(r => r[0]) : [];
         if (!tables.length) { els.schema.innerHTML = '<em>No tables found.</em>'; return; }
 
-        // helpers
         const pad = (s, n) => String(s) + ' '.repeat(Math.max(0, n - String(s).length));
         const asciiTable = (cols) => {
           const nameW = Math.max('Column Name'.length, ...cols.map(c => String(c.name).length));
@@ -242,15 +295,9 @@
           html += `<div class="schema-block">`;
           html += `<div class="schema-title">Table: <span class="tag">${t}</span></div>`;
           html += `<pre class="ascii">${asciiTable(cols)}</pre>`;
-
-          if (pkCols.length === 1) {
-            html += `<div class="muted"><code>${pkCols[0]}</code> is the primary key (column with unique values) for this table.</div>`;
-          } else if (pkCols.length > 1) {
-            html += `<div class="muted">(<code>${pkCols.join(', ')}</code>) is the primary key (combination of columns with unique values) for this table.</div>`;
-          } else {
-            html += `<div class="muted">This table does not declare a primary key.</div>`;
-          }
-
+          if (pkCols.length === 1) html += `<div class="muted"><code>${pkCols[0]}</code> is the primary key.</div>`;
+          else if (pkCols.length > 1) html += `<div class="muted">Composite PK: <code>${pkCols.join(', ')}</code>.</div>`;
+          else html += `<div class="muted">No declared primary key.</div>`;
           html += `</div>`;
         }
         els.schema.innerHTML = html;
@@ -258,8 +305,8 @@
         els.schema.innerHTML = '<span class="warn">Error loading schema: ' + e.message + '</span>';
       }
     }
-    // ------------------------------------------
 
+    /* ------------------------------- Boot flow ------------------------------- */
     async function boot() {
       try {
         setReady(false);
@@ -299,6 +346,7 @@
       }
     }
 
+    /* ----------------------- Load selected challenge ------------------------ */
     async function loadChallenge(id) {
       try {
         setReady(false);
@@ -321,7 +369,7 @@
         db = new SQL.Database();
         db.run(APP.seedSQL);
 
-        // Load description: prefer file if provided, else inline text
+        // Load description file if present
         let desc = meta.description || '';
         if (meta.description_file) {
           try {
@@ -329,8 +377,6 @@
             if (d.ok) desc = await d.text();
           } catch(_) {}
         }
-
-        // UI text
         els.challengeTitle.textContent = meta.title || '';
         els.question.textContent = desc || 'No description provided.';
 
@@ -340,7 +386,7 @@
         // Show schema
         renderSchema();
 
-        // Quick preview of first table (if any)
+        // Quick preview of first table
         const tnames = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
         if (tnames.length && tnames[0].values.length) {
           const firstTable = tnames[0].values[0][0];
@@ -357,6 +403,7 @@
       }
     }
 
+    /* --------------------------------- Run --------------------------------- */
     function runQuery() {
       if (!db) { els.results.innerHTML = '<span class="warn">DB not ready.</span>'; return; }
       const sql = getSQL().trim();
@@ -380,7 +427,6 @@
     }
 
     function resetDB() {
-      if (!APP.seedSQL) return;
       db = new SQL.Database();
       db.run(APP.seedSQL);
       els.runInfo.textContent = 'DB reset';
@@ -395,43 +441,50 @@
       }
     }
 
+    /* ------------------------------- Grading ------------------------------- */
     function toTableHTML(res) {
       if (!res || !res.length || !res[0].columns) return '<div class="muted">No rows.</div>';
       return tableHTML(res[0]);
     }
 
     function grade() {
-      if (!db) { els.gradeStatus.textContent = 'DB not ready.'; els.gradeStatus.className='warn'; return; }
-      const userSQL = getSQL().trim();
-      els.gradeStatus.textContent = ''; els.gradeDiff.innerHTML = '';
-      if (!/^select/i.test(userSQL)) {
-        els.gradeStatus.textContent = 'Only SELECT queries can be submitted.';
-        els.gradeStatus.className = 'warn';
-        return;
-      }
+      // Final grading for Part 3
       try {
-        db.run('DROP TABLE IF EXISTS __user__;');
-        db.run('DROP TABLE IF EXISTS __truth__;');
-        db.run(`CREATE TEMP TABLE __user__ AS ${userSQL}`);
-        db.run(`CREATE TEMP TABLE __truth__ AS ${APP.solutionSQL}`);
-
-        // Column sanity
-        if (APP.expectColumns && APP.expectColumns.length) {
-          const info = db.exec("PRAGMA table_info(__user__)");
-          if (!info.length) { els.gradeStatus.textContent='Your query returned no table.'; els.gradeStatus.className='warn'; return; }
-          const cols = info[0].values.map(r => String(r[1]).toLowerCase());
-          const missing = APP.expectColumns.filter(c => !cols.includes(c.toLowerCase()));
-          if (missing.length) { els.gradeStatus.textContent = '❌ Missing column(s): ' + missing.join(', '); els.gradeStatus.className='warn'; return; }
+        const userSQL = getSQL().trim();
+        if (!/^select/i.test(userSQL)) {
+          els.gradeStatus.textContent = 'Only SELECT queries can be submitted.';
+          els.gradeStatus.className = 'warn';
+          return;
         }
+        const fresh = new SQL.Database();
+        fresh.run(APP.seedSQL);
 
-        const miss = db.exec("SELECT * FROM __truth__ EXCEPT SELECT * FROM __user__");
-        const extra = db.exec("SELECT * FROM __user__  EXCEPT SELECT * FROM __truth__");
+        // Build truth & user
+        fresh.run('DROP TABLE IF EXISTS __user__');
+        fresh.run('DROP TABLE IF EXISTS __truth__');
+        fresh.run(`CREATE TEMP TABLE __user__ AS ${userSQL}`);
+        fresh.run(`CREATE TEMP TABLE __truth__ AS ${APP.solutionSQL}`);
+
+        // Column sanity (expected final)
+        const expected = ['customer_id','deployment_model'];
+        const info = fresh.exec("PRAGMA table_info(__user__)");
+        if (!info.length) { els.gradeStatus.textContent='Your query returned no table.'; els.gradeStatus.className='warn'; return; }
+        const cols = info[0].values.map(r => String(r[1]).toLowerCase());
+        const missing = expected.filter(c => !cols.includes(c.toLowerCase()));
+        if (missing.length) { els.gradeStatus.textContent = '❌ Missing column(s): ' + missing.join(', '); els.gradeStatus.className='warn'; return; }
+
+        const miss = fresh.exec("SELECT * FROM __truth__ EXCEPT SELECT * FROM __user__");
+        const extra = fresh.exec("SELECT * FROM __user__  EXCEPT SELECT * FROM __truth__");
         const hasMiss = miss.length && miss[0].values.length;
         const hasExtra = extra.length && extra[0].values.length;
 
-        if (!hasMiss && !hasExtra) { els.gradeStatus.textContent = '✅ Correct!'; els.gradeStatus.className='ok'; }
-        else {
-          els.gradeStatus.textContent = '❌ Not quite — see differences below.'; els.gradeStatus.className='warn';
+        if (!hasMiss && !hasExtra) {
+          els.gradeStatus.textContent = '✅ Correct!';
+          els.gradeStatus.className = 'ok';
+          els.gradeDiff.innerHTML = '';
+        } else {
+          els.gradeStatus.textContent = '❌ Not quite — see differences below.';
+          els.gradeStatus.className = 'warn';
           let out = '';
           if (hasMiss) out += '<div class="muted">Missing rows (truth − yours):</div>' + toTableHTML(miss);
           if (hasExtra) out += '<div class="muted">Extra rows (yours − truth):</div>' + toTableHTML(extra);
@@ -443,16 +496,210 @@
       }
     }
 
+    /* ---------------------------- Mini-checks ---------------------------- */
+    function newFreshDB(){ const d=new SQL.Database(); d.run(APP.seedSQL); return d; }
+
+    function cmpSets(user, truth, expectedCols){
+      // Normalize both tables to arrays of strings (ordered by expectedCols)
+      const colIdx = (cols, name) => cols.findIndex(c => c.toLowerCase() === name.toLowerCase());
+      const mapToRows = (res, colsWanted) => {
+        const cols = res.columns;
+        const idxs = colsWanted.map(n => colIdx(cols,n));
+        if (idxs.some(i => i<0)) return { err: 'Missing expected columns: ' + colsWanted.filter((_,i)=>idxs[i]<0).join(', ') };
+        const rows = res.values.map(r => idxs.map(i => r[i]===null? '__NULL__' : String(r[i])).join('\u0001'));
+        return { rows, idxs, cols };
+      };
+      const u = mapToRows(user, expectedCols);
+      if (u.err) return { err: u.err };
+      const t = mapToRows(truth, expectedCols);
+      if (t.err) return { err: t.err };
+
+      const setU = new Set(u.rows);
+      const setT = new Set(t.rows);
+
+      const missingRows = [...setT].filter(x => !setU.has(x));
+      const extraRows   = [...setU].filter(x => !setT.has(x));
+
+      const toResult = (rows) => ({
+        columns: expectedCols,
+        values: rows.map(s => s.split('\u0001').map(v => v==='__NULL__'? null : v))
+      });
+
+      return {
+        ok: missingRows.length===0 && extraRows.length===0,
+        missing: toResult(missingRows),
+        extra: toResult(extraRows)
+      };
+    }
+
+    function truthPart1A(fresh){
+      const q = `
+        SELECT a.account_id
+        FROM accounts a
+        LEFT JOIN (
+          SELECT account_id FROM deployments WHERE active_to IS NULL GROUP BY account_id
+        ) act ON act.account_id = a.account_id
+        WHERE act.account_id IS NULL
+        ORDER BY a.account_id
+      `;
+      return fresh.exec(q)[0];
+    }
+    function truthPart1B(fresh){
+      const q = `
+        WITH cutoff AS (SELECT DATE(MAX(seen_at), '-365 day') AS d FROM telemetry)
+        SELECT source, COUNT(*) AS signals
+        FROM telemetry t, cutoff c
+        WHERE t.seen_at >= c.d
+        GROUP BY source
+      `;
+      return fresh.exec(q)[0];
+    }
+    function truthPart1C(fresh){
+      const q = `
+        WITH cutoff AS (SELECT DATE(MAX(seen_at), '-365 day') AS d FROM telemetry),
+        norm AS (
+          SELECT account_id,
+                 MAX(CASE WHEN value IS NOT NULL AND (
+                   LOWER(value) LIKE '%cloud%' OR LOWER(value) LIKE '%saas%' OR LOWER(value) LIKE '%hosted%' OR
+                   LOWER(value) LIKE '%aws%'  OR LOWER(value) LIKE '%gcp%'  OR LOWER(value) LIKE '%azure%'
+                 ) THEN 1 ELSE 0 END) AS has_cloud,
+                 MAX(CASE WHEN value IS NOT NULL AND (
+                   LOWER(value) LIKE '%onprem%' OR LOWER(value) LIKE '%on-prem%' OR LOWER(value) LIKE '%server%' OR
+                   LOWER(value) LIKE '%self-hosted%' OR LOWER(value) LIKE '%datacenter%'
+                 ) THEN 1 ELSE 0 END) AS has_onprem
+          FROM telemetry t, cutoff c
+          WHERE t.seen_at >= c.d
+          GROUP BY account_id
+        )
+        SELECT account_id FROM norm WHERE has_cloud=1 AND has_onprem=1 ORDER BY account_id
+      `;
+      return fresh.exec(q)[0];
+    }
+    function truthPart2Flags(fresh){
+      const q = `
+        WITH latest_active AS (
+          SELECT account_id, model_raw, MAX(DATE(active_from)) AS active_dt
+          FROM deployments
+          WHERE active_to IS NULL
+          GROUP BY account_id
+        ),
+        active_norm AS (
+          SELECT a.account_id, a.customer_id,
+                 CASE
+                   WHEN LOWER(l.model_raw) LIKE '%cloud%' OR LOWER(l.model_raw) LIKE '%saas%' OR LOWER(l.model_raw) LIKE '%hosted%' OR
+                        LOWER(l.model_raw) LIKE '%aws%'  OR LOWER(l.model_raw) LIKE '%gcp%'  OR LOWER(l.model_raw) LIKE '%azure%' THEN 'Cloud'
+                   WHEN LOWER(l.model_raw) LIKE '%onprem%' OR LOWER(l.model_raw) LIKE '%on-prem%' OR LOWER(l.model_raw) LIKE '%server%' OR
+                        LOWER(l.model_raw) LIKE '%self-hosted%' OR LOWER(l.model_raw) LIKE '%datacenter%' THEN 'OnPrem'
+                   ELSE NULL
+                 END AS model_active
+          FROM accounts a
+          LEFT JOIN latest_active l USING (account_id)
+        ),
+        cutoff AS (SELECT DATE(MAX(seen_at), '-365 day') AS d FROM telemetry),
+        signal_flags AS (
+          SELECT account_id,
+                 MAX(CASE WHEN value IS NOT NULL AND (
+                   LOWER(value) LIKE '%cloud%' OR LOWER(value) LIKE '%saas%' OR LOWER(value) LIKE '%hosted%' OR
+                   LOWER(value) LIKE '%aws%'  OR LOWER(value) LIKE '%gcp%'  OR LOWER(value) LIKE '%azure%'
+                 ) THEN 1 ELSE 0 END) AS cloud_sig,
+                 MAX(CASE WHEN value IS NOT NULL AND (
+                   LOWER(value) LIKE '%onprem%' OR LOWER(value) LIKE '%on-prem%' OR LOWER(value) LIKE '%server%' OR
+                   LOWER(value) LIKE '%self-hosted%' OR LOWER(value) LIKE '%datacenter%'
+                 ) THEN 1 ELSE 0 END) AS onprem_sig
+          FROM telemetry t, cutoff c
+          WHERE t.seen_at >= c.d
+          GROUP BY account_id
+        )
+        SELECT
+          an.account_id,
+          an.customer_id,
+          CASE WHEN an.model_active='Cloud' THEN 1
+               WHEN an.model_active IS NULL AND COALESCE(sf.cloud_sig,0)=1 THEN 1
+               ELSE 0 END AS has_cloud_flag,
+          CASE WHEN an.model_active='OnPrem' THEN 1
+               WHEN an.model_active IS NULL AND COALESCE(sf.onprem_sig,0)=1 THEN 1
+               ELSE 0 END AS has_onprem_flag,
+          CASE WHEN an.model_active IS NULL AND COALESCE(sf.cloud_sig,0)=1 AND COALESCE(sf.onprem_sig,0)=1 THEN 1 ELSE 0 END AS account_hybrid_flag,
+          CASE WHEN an.model_active IS NOT NULL THEN 'Active'
+               WHEN COALESCE(sf.cloud_sig,0)=1 OR COALESCE(sf.onprem_sig,0)=1 THEN 'Telemetry'
+               ELSE 'None' END AS source_of_truth
+        FROM active_norm an
+        LEFT JOIN signal_flags sf USING (account_id)
+        ORDER BY an.customer_id, an.account_id
+      `;
+      return fresh.exec(q)[0];
+    }
+
+    function miniCheck(){
+      try{
+        els.miniStatus.textContent = 'Checking…'; els.miniStatus.className = 'muted';
+        els.gradeDiff.innerHTML = ''; els.gradeStatus.textContent = '';
+
+        const mode = els.whichCheck.value;
+        const userSQL = getSQL().trim();
+        if (!/^select/i.test(userSQL)) { els.miniStatus.textContent='Write a SELECT query to check.'; els.miniStatus.className='warn'; return; }
+
+        const freshTruth = newFreshDB();
+        const freshUser  = newFreshDB();
+
+        // Run user's query
+        const uRes = freshUser.exec(`SELECT * FROM (${userSQL})`);
+        if (!uRes.length) { els.miniStatus.textContent='Your query returned no rows.'; els.miniStatus.className='warn'; return; }
+
+        let truthRes, expectedCols;
+
+        if (mode === '1A') {
+          truthRes = truthPart1A(freshTruth);
+          expectedCols = ['account_id'];
+        } else if (mode === '1B') {
+          truthRes = truthPart1B(freshTruth);
+          expectedCols = ['source','signals'];
+        } else if (mode === '1C') {
+          truthRes = truthPart1C(freshTruth);
+          expectedCols = ['account_id'];
+        } else if (mode === '2') {
+          truthRes = truthPart2Flags(freshTruth);
+          expectedCols = ['account_id','customer_id','has_cloud_flag','has_onprem_flag','account_hybrid_flag','source_of_truth'];
+        } else if (mode === '3') {
+          // Defer to final grader
+          grade(); els.miniStatus.textContent='Ran final grade (Part 3).'; els.miniStatus.className='muted'; return;
+        } else {
+          els.miniStatus.textContent='Unknown check mode.'; els.miniStatus.className='warn'; return;
+        }
+
+        const cmp = cmpSets(uRes[0], truthRes, expectedCols);
+        if (cmp.err) {
+          els.miniStatus.textContent = '❌ ' + cmp.err;
+          els.miniStatus.className = 'warn';
+          els.gradeDiff.innerHTML = '';
+          return;
+        }
+        if (cmp.ok) {
+          els.miniStatus.textContent = '✅ Passed!';
+          els.miniStatus.className = 'ok';
+          els.gradeDiff.innerHTML = '';
+        } else {
+          els.miniStatus.textContent = '❌ Not quite — see differences below.';
+          els.miniStatus.className = 'warn';
+          let out = '';
+          if (cmp.missing.values.length) out += '<div class="muted">Missing rows (truth − yours):</div>' + tableHTML(cmp.missing);
+          if (cmp.extra.values.length)   out += '<div class="muted">Extra rows (yours − truth):</div>' + tableHTML(cmp.extra);
+          els.gradeDiff.innerHTML = out;
+        }
+      } catch(e){
+        els.miniStatus.textContent = 'Error: ' + e.message;
+        els.miniStatus.className = 'warn';
+      }
+    }
+
     // Events
     document.getElementById('run').addEventListener('click', runQuery);
     document.getElementById('reset').addEventListener('click', resetDB);
     document.getElementById('check').addEventListener('click', grade);
+    document.getElementById('mini-check').addEventListener('click', miniCheck);
     document.addEventListener('keydown', (e) => {
-      if (cm) {
-        // CodeMirror handles keymaps we added; no-op here
-      } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        runQuery(); // textarea fallback
-      }
+      if (cm) { /* CodeMirror handles keymaps */ }
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runQuery();
     });
 
     // Start
