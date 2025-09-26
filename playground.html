@@ -196,6 +196,9 @@
       dialectNote: document.getElementById('dialect-note')
     };
 
+    // ---- cache-buster helper
+    const bust = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + Date.now();
+
     function sqliteModeOn(){ return !els.modeSelect || els.modeSelect.value === 'sql'; }
     function updateDialectNote(){
       els.dialectNote.textContent = sqliteModeOn() ? '' : 'Checks run on SQLite. MySQL mode changes highlighting only.';
@@ -287,7 +290,8 @@
         }
         SQL = await initSqlJs({ locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}` });
 
-        const idxResp = await fetch('challenges/challenges.json');
+        // cache-busted challenges index
+        const idxResp = await fetch(bust('challenges/challenges.json'));
         if (!idxResp.ok) throw new Error('Cannot load challenges.json ('+idxResp.status+')');
         APP.challenges = await idxResp.json();
 
@@ -345,18 +349,23 @@
         if (!meta) throw new Error('Challenge not found: ' + id);
         APP.current = meta;
 
+        // cache-busted seed & starter
         const [seedText, starterText] = await Promise.all([
-          fetch(meta.seed).then(r=>{ if(!r.ok) throw new Error('Seed not found'); return r.text(); }),
-          fetch(meta.starter).then(r=>{ if(!r.ok) throw new Error('Starter not found'); return r.text(); })
+          fetch(bust(meta.seed)).then(r=>{ if(!r.ok) throw new Error('Seed not found'); return r.text(); }),
+          fetch(bust(meta.starter)).then(r=>{ if(!r.ok) throw new Error('Starter not found'); return r.text(); })
         ]);
         APP.seedSQL = seedText; APP.starterSQL = starterText;
 
         db = new SQL.Database();
         db.run(APP.seedSQL);
 
+        // cache-busted description
         let desc = meta.description || '';
         if (meta.description_file){
-          try{ const d = await fetch(meta.description_file); if (d.ok) desc = await d.text(); } catch(_){}
+          try{
+            const d = await fetch(bust(meta.description_file));
+            if (d.ok) desc = await d.text();
+          }catch(_){}
         }
         const label = (meta.order ? `Challenge ${meta.order}: ${meta.title}` : (meta.title || 'Workspace'));
         els.challengeTitle.textContent = label;
