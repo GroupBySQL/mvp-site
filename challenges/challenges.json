@@ -7,5 +7,4 @@
     "starter": "challenges/deployment-distribution-v1/starter.sql",
     "grader": "challenges/deployment-distribution-v1/grader.js"
   }
-  /* , { ... your existing os-latest-active entry ... } */
 ]
