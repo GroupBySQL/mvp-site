@@ -17,20 +17,25 @@
       font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:#111
     }
     header{
-      padding:16px 20px; border-bottom:1px solid var(--border);
-      background:#fff; display:flex; justify-content:space-between; align-items:center
+      padding:12px 20px; border-bottom:1px solid var(--border);
+      background:#fff; display:flex; justify-content:space-between; align-items:center; gap:12px
     }
     header h1{ margin:0; font-size:18px }
-    #status{ color:var(--muted); font-size:14px }
+    #status{ color:var(--muted); font-size:13px }
+    .hstack{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+
+    .pickerbar{
+      background:#fff; border-bottom:1px solid var(--border);
+      padding:10px 20px; display:flex; align-items:center; gap:10px; flex-wrap:wrap
+    }
+    .help{ color:#374151; font-size:13px }
 
     main{
       max-width:1400px; margin:0 auto;
       display:grid; grid-template-columns: repeat(2, minmax(0, 1fr));
       gap:16px; padding:16px
     }
-    @media (max-width: 900px){
-      main{ grid-template-columns:1fr }
-    }
+    @media (max-width: 900px){ main{ grid-template-columns:1fr } }
 
     .panel{ border:1px solid var(--border); border-radius:12px; background:#fff; min-width:0; }
     .panel .pad{ padding:16px }
@@ -71,29 +76,12 @@
       table{ min-width:480px }
     }
 
-    /* Schema (LeetCode-style) */
-    #schema .schema-block{ margin-top:12px }
-    #schema .schema-title{ font-weight:600; margin-bottom:6px }
-    #schema .schema-title .tag{
-      display:inline-block; padding:2px 8px; border-radius:999px;
-      font-size:12px; background:#eef2f7; border:1px solid #e5e7eb;
-    }
     pre.ascii{
       background:#f9fafb; border:1px solid var(--border); border-radius:10px;
       padding:10px; overflow:auto; margin:8px 0; font-size:13px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       line-height:1.35;
     }
-    #question{ white-space:pre-wrap; margin-top:8px }
-    #schema code{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace }
-
-    details{ border:1px solid var(--border); border-radius:10px; padding:8px 12px; margin:8px 0; background:#fff }
-    summary{ font-weight:600; cursor:pointer }
-    .hint{ color:#374151; font-size:14px }
-
-    .callout{ background:#fefce8; border:1px solid #f59e0b; padding:8px 10px; border-radius:8px; color:#723b13; margin-top:6px }
-    .ok{ color:var(--ok); font-weight:600 }
-    .warn{ color:var(--warn); font-weight:600 }
   </style>
 
   <!-- CodeMirror -->
@@ -102,71 +90,51 @@
 </head>
 <body>
   <header>
-    <h1>SQL Playground</h1>
-    <div id="status" class="muted">Loading…</div>
+    <div>
+      <h1 style="display:flex; align-items:baseline; gap:8px; margin-bottom:2px">
+        SQL Playground <span class="muted" style="font-size:13px">MVP</span>
+      </h1>
+      <div id="status" class="muted">Pick a challenge to start</div>
+    </div>
+    <div class="hstack">
+      <label for="challenge" class="muted" style="font-size:13px;">Challenge</label>
+      <select id="challenge"></select>
+    </div>
   </header>
 
+  <!-- Instruction bar (neutral; outside panels) -->
+  <div class="pickerbar">
+    <div class="help">
+      Pick one from the <b>Challenge</b> dropdown to review details, write your SQL solution on the right.
+    </div>
+  </div>
+
   <main>
-    <!-- LEFT: challenge, collapsible parts, schema, check picker -->
+    <!-- LEFT: neutral workspace, description loads after selection -->
     <section class="panel">
       <div class="pad">
-        <h2>Workspace</h2>
+        <h2 id="challenge-title">Workspace</h2>
 
-        <label class="muted" for="challenge">Challenge</label><br/>
-        <select id="challenge" style="margin-top:6px; width:100%"></select>
+        <div id="question" class="muted" style="white-space:pre-wrap;">
+          Practice with real-world style challenges. Select one from the <b>Challenge</b> dropdown above to see its brief and schema here.
+        </div>
 
-        <h3 id="challenge-title" style="margin-top:10px;"></h3>
-        <div id="question" class="muted">Select a challenge to load its instructions.</div>
+        <h3 style="margin-top:12px;">Schema</h3>
+        <div id="schema" class="muted">—</div>
 
-        <!-- Collapsible parts -->
-        <details open>
-          <summary>Part 1 — Data audit (Easy)</summary>
-          <div class="hint">
-            Explore gaps before classifying:
-            <ul>
-              <li>A) Accounts without an active deployment</li>
-              <li>B) Telemetry by source (last 365 days)</li>
-              <li>C) Accounts with both Cloud & OnPrem telemetry (last 365 days)</li>
-            </ul>
-            <div class="callout">Tip: use <code>DATE(MAX(seen_at), '-365 day')</code> for the window.</div>
-          </div>
-        </details>
+        <h3 style="margin-top:12px;">Validate your result</h3>
+        <div class="muted" style="font-size:14px;">
+          Select the corresponding task to check your solution, then click <b>Check</b>.
+          We compare your current result to the expected answer for that task. (Available after you load a challenge.)
+        </div>
 
-        <details>
-          <summary>Part 2 — Per-account flags (Medium)</summary>
-          <div class="hint">
-            Conservative rule: <b>Active &gt; Telemetry</b>. Output columns:
-            <code>account_id, customer_id, has_cloud_flag, has_onprem_flag, account_hybrid_flag, source_of_truth</code>.
-          </div>
-        </details>
-
-        <details>
-          <summary>Part 3 — Customer roll-up (Easy)</summary>
-          <div class="hint">
-            Hybrid if both flags; Cloud/OnPrem if one; None if neither.
-            Output: <code>customer_id, deployment_model</code>.
-          </div>
-        </details>
-
-        <details>
-          <summary>Part 4 — Executive summary (Optional)</summary>
-          <div class="hint">Counts + % by <code>deployment_model</code>.</div>
-        </details>
-
-        <h3 style="margin-top:10px;">Schema</h3>
-        <div id="schema" class="muted">Loading schema…</div>
-
-        <h3 style="margin-top:10px;">Check a Part</h3>
-        <div class="hint">Choose what you’re checking and hit <b>Check</b>. Part 3 uses the final grader.</div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px">
-          <select id="which-check">
-            <option value="1A">Part 1A — No active</option>
-            <option value="1B">Part 1B — Telemetry by source</option>
-            <option value="1C">Part 1C — Both signals</option>
-            <option value="2">Part 2 — Per-account flags</option>
-            <option value="3">Part 3 — Final roll-up</option>
+        <div class="hstack" style="margin-top:6px">
+          <select id="which-check" disabled>
+            <option value="1A">Part 1 — Audit</option>
+            <option value="2">Part 2 — Flags table</option>
+            <option value="3">Part 3 — Roll-up (final)</option>
           </select>
-          <button id="mini-check">Check</button>
+          <button id="mini-check" disabled>Check</button>
           <span id="mini-status" class="muted"></span>
         </div>
       </div>
@@ -176,7 +144,7 @@
     <section class="panel">
       <div class="pad">
         <h2>Editor</h2>
-        <textarea id="editor">-- Select a challenge from the left to load starter SQL</textarea>
+        <textarea id="editor">-- Pick a challenge to load starter SQL here.</textarea>
 
         <div class="toolbar">
           <button id="run" class="primary" disabled title="Ctrl/Cmd + Enter">Run</button>
@@ -186,7 +154,7 @@
           <span id="grade-status" class="muted"></span>
         </div>
 
-        <div id="results" class="muted">Run a query to see results here.</div>
+        <div id="results" class="muted">Pick a challenge to preview seed data here.</div>
         <div id="grade-diff"></div>
       </div>
     </section>
@@ -198,8 +166,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
 
   <script>
+    // Global state
     let SQL, db, cm = null;
+    const APP = {
+      challenges: [],
+      current: null,
+      seedSQL: '',
+      starterSQL: '',
+      solutionSQL: '',
+      graderReady: false,
+      grader: null // loaded from challenge: window.CHALLENGE_GRADER
+    };
 
+    // Elements
     const els = {
       status: document.getElementById('status'),
       challengeSelect: document.getElementById('challenge'),
@@ -219,35 +198,26 @@
       miniStatus: document.getElementById('mini-status')
     };
 
-    // App state
-    const APP = {
-      challenges: [],
-      current: null,         // current challenge meta
-      seedSQL: '',
-      starterSQL: '',
-      solutionSQL: '',
-      expectColumns: []
-    };
-
-    /* -------------------------------- UI helpers -------------------------------- */
-    function setReady(on) {
-      els.run.disabled = !on;
-      els.reset.disabled = !on;
-      els.check.disabled = !on;
-      els.miniCheckBtn.disabled = !on;
-      els.status.textContent = on ? 'Ready' : 'Loading…';
-      els.status.className = on ? 'muted' : 'muted';
+    /* ----------------------------- UI helpers ----------------------------- */
+    function setControlsEnabled(on){
+      els.run.disabled = !on; els.reset.disabled = !on;
+      // Check actions only enabled if a grader is present
+      const canCheck = on && APP.graderReady;
+      els.check.disabled = !canCheck; els.miniCheckBtn.disabled = !canCheck; els.whichCheck.disabled = !canCheck;
+      els.status.textContent = on ? (canCheck ? 'Ready' : 'Loaded (checks unavailable for this challenge)') : 'Pick a challenge to start';
+      els.status.className = 'muted';
     }
-    function getSQL() { return cm ? cm.getValue() : els.editorTA.value; }
-    function setSQL(s) { if (cm) cm.setValue(s); else els.editorTA.value = s; }
+    function getSQL(){ return cm ? cm.getValue() : els.editorTA.value; }
+    function setSQL(s){ if (cm) cm.setValue(s); else els.editorTA.value = s; }
 
     function tableHTML(result){
+      if (!result || !result.columns) return '<span class="muted">No rows.</span>';
       const { columns, values } = result;
       let html = '<div class="table-wrap"><table><thead><tr>';
       html += '<th class="col-idx">#</th>';
       html += columns.map(c=>`<th>${c}</th>`).join('');
       html += '</tr></thead><tbody>';
-      for (let i=0;i<values.length;i++) {
+      for (let i=0;i<values.length;i++){
         const row = values[i];
         html += '<tr>';
         html += `<td class="col-idx">${i+1}</td>`;
@@ -257,450 +227,260 @@
       html += '</tbody></table></div>';
       return html;
     }
-    function renderTable(result) {
-      if (!result || !result.columns) { els.results.innerHTML = '<span class="muted">No rows.</span>'; return; }
+    function renderTable(result){
       els.results.innerHTML = tableHTML(result);
       els.results.classList.remove('muted');
     }
 
-    /* ---------------------------- Schema renderer ---------------------------- */
-    function renderSchema() {
-      try {
+    function renderSchema(){
+      if (!db){ els.schema.textContent = '—'; return; }
+      try{
         const res = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
         const tables = res.length ? res[0].values.map(r => r[0]) : [];
-        if (!tables.length) { els.schema.innerHTML = '<em>No tables found.</em>'; return; }
+        if (!tables.length){ els.schema.innerHTML = '<em>No tables found.</em>'; return; }
 
-        const pad = (s, n) => String(s) + ' '.repeat(Math.max(0, n - String(s).length));
-        const asciiTable = (cols) => {
-          const nameW = Math.max('Column Name'.length, ...cols.map(c => String(c.name).length));
-          const typeW = Math.max('Type'.length, ...cols.map(c => String(c.type || '').length));
+        const pad = (s,n)=>String(s)+' '.repeat(Math.max(0,n-String(s).length));
+        const asciiTable = (cols)=>{
+          const nameW = Math.max('Column Name'.length, ...cols.map(c=>String(c.name).length));
+          const typeW = Math.max('Type'.length, ...cols.map(c=>String(c.type||'').length));
           const line  = '+' + '-'.repeat(nameW+2) + '+' + '-'.repeat(typeW+2) + '+';
-          let out = '';
-          out += line + '\n';
-          out += `| ${pad('Column Name', nameW)} | ${pad('Type', typeW)} |\n`;
-          out += line + '\n';
-          for (const c of cols) out += `| ${pad(c.name, nameW)} | ${pad(c.type || '', typeW)} |\n`;
-          out += line;
-          return out;
+          let out = line+'\n' + `| ${pad('Column Name',nameW)} | ${pad('Type',typeW)} |\n` + line+'\n';
+          for (const c of cols) out += `| ${pad(c.name,nameW)} | ${pad(c.type||'',typeW)} |\n`;
+          out += line; return out;
         };
 
         let html = '';
-        for (const t of tables) {
+        for (const t of tables){
           const colsRes = db.exec(`PRAGMA table_info(${t})`);
-          const cols = (colsRes.length ? colsRes[0].values : []).map(r => ({
-            name: r[1], type: r[2] || '', pk: r[5] ? Number(r[5]) : 0
-          }));
-          const pkCols = cols.filter(c => c.pk > 0).sort((a,b)=>a.pk-b.pk).map(c => c.name);
-
+          const cols = (colsRes.length ? colsRes[0].values : []).map(r=>({ name:r[1], type:r[2]||'', pk:r[5]?Number(r[5]):0 }));
+          const pkCols = cols.filter(c=>c.pk>0).sort((a,b)=>a.pk-b.pk).map(c=>c.name);
           html += `<div class="schema-block">`;
-          html += `<div class="schema-title">Table: <span class="tag">${t}</span></div>`;
+          html += `<div class="schema-title" style="font-weight:600; margin-bottom:6px">Table: <span style="background:#eef2f7;border:1px solid #e5e7eb;border-radius:999px;padding:2px 8px;">${t}</span></div>`;
           html += `<pre class="ascii">${asciiTable(cols)}</pre>`;
-          if (pkCols.length === 1) html += `<div class="muted"><code>${pkCols[0]}</code> is the primary key.</div>`;
-          else if (pkCols.length > 1) html += `<div class="muted">Composite PK: <code>${pkCols.join(', ')}</code>.</div>`;
+          if (pkCols.length===1) html += `<div class="muted"><code>${pkCols[0]}</code> is the primary key.</div>`;
+          else if (pkCols.length>1) html += `<div class="muted">Composite PK: <code>${pkCols.join(', ')}</code>.</div>`;
           else html += `<div class="muted">No declared primary key.</div>`;
           html += `</div>`;
         }
         els.schema.innerHTML = html;
-      } catch (e) {
-        els.schema.innerHTML = '<span class="warn">Error loading schema: ' + e.message + '</span>';
-      }
+      }catch(e){ els.schema.innerHTML = '<span class="warn">Error loading schema: '+e.message+'</span>'; }
     }
 
-    /* ------------------------------- Boot flow ------------------------------- */
-    async function boot() {
-      try {
-        setReady(false);
-
-        // Editor (CodeMirror)
-        if (window.CodeMirror) {
-          cm = CodeMirror.fromTextArea(els.editorTA, {
-            mode: 'text/x-sql',
-            theme: 'neo',
-            lineNumbers: true,
-            autofocus: true
-          });
+    /* ------------------------------- Boot ------------------------------- */
+    async function boot(){
+      try{
+        // Editor
+        if (window.CodeMirror){
+          cm = CodeMirror.fromTextArea(els.editorTA, { mode:'text/x-sql', theme:'neo', lineNumbers:true, autofocus:true });
           cm.addKeyMap({ 'Ctrl-Enter': runQuery, 'Cmd-Enter': runQuery });
         }
 
         // SQL engine
-        SQL = await initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}` });
+        SQL = await initSqlJs({ locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}` });
 
-        // Load challenges index
+        // Challenges index
         const idxResp = await fetch('challenges/challenges.json');
-        if (!idxResp.ok) throw new Error('Cannot load challenges.json (' + idxResp.status + ')');
+        if (!idxResp.ok) throw new Error('Cannot load challenges.json ('+idxResp.status+')');
         APP.challenges = await idxResp.json();
-        if (!Array.isArray(APP.challenges) || !APP.challenges.length) {
+        if (!Array.isArray(APP.challenges) || !APP.challenges.length){
           els.status.textContent = 'No challenges found.'; els.status.className='warn'; return;
         }
 
-        // Populate dropdown
-        els.challengeSelect.innerHTML = APP.challenges.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
-        els.challengeSelect.addEventListener('change', () => loadChallenge(els.challengeSelect.value));
+        // Populate dropdown with placeholder
+        const opts = ['<option value="">— Select a challenge —</option>']
+          .concat(APP.challenges.map(c => `<option value="${c.id}">${c.title}</option>`));
+        els.challengeSelect.innerHTML = opts.join('');
 
-        // Auto-load first challenge
-        await loadChallenge(APP.challenges[0].id);
-        setReady(true);
-      } catch (e) {
-        els.status.textContent = 'Failed to initialize: ' + e.message;
-        els.status.className = 'warn';
+        // Change handler: load only after selection
+        els.challengeSelect.addEventListener('change', onChallengeChange);
+
+        // Neutral state
+        setControlsEnabled(false);
+        els.status.textContent = 'Pick a challenge to start';
+      }catch(e){
+        els.status.textContent = 'Failed to initialize: ' + e.message; els.status.className='warn';
       }
     }
 
-    /* ----------------------- Load selected challenge ------------------------ */
-    async function loadChallenge(id) {
-      try {
-        setReady(false);
-        const meta = APP.challenges.find(c => c.id === id);
+    function resetToNeutral(){
+      APP.current = null; APP.seedSQL = APP.starterSQL = APP.solutionSQL = '';
+      APP.grader = null; APP.graderReady = false; db = null;
+      setControlsEnabled(false);
+      els.challengeTitle.textContent = 'Workspace';
+      els.question.innerHTML = 'Practice with real-world style challenges. Pick one from the <b>Challenge</b> dropdown above to load its brief and schema here.';
+      setSQL('-- Pick a challenge to load starter SQL here.');
+      els.schema.textContent = '—';
+      els.results.textContent = 'Pick a challenge to preview seed data here.';
+      els.gradeDiff.innerHTML = ''; els.gradeStatus.textContent = ''; els.runInfo.textContent = '';
+      els.miniStatus.textContent = '';
+    }
+
+    async function onChallengeChange(){
+      const val = els.challengeSelect.value;
+      if (!val) { resetToNeutral(); return; }
+      await loadChallenge(val);
+    }
+
+    /* --------------------------- Challenge Load --------------------------- */
+    async function loadChallenge(id){
+      try{
+        setControlsEnabled(false);
+        els.status.textContent = 'Loading challenge…';
+
+        const meta = APP.challenges.find(c=>c.id===id);
         if (!meta) throw new Error('Challenge not found: ' + id);
         APP.current = meta;
 
-        const [seedText, starterText, solutionText] = await Promise.all([
-          fetch(meta.seed).then(r => { if(!r.ok) throw new Error('Seed not found'); return r.text(); }),
-          fetch(meta.starter).then(r => { if(!r.ok) throw new Error('Starter not found'); return r.text(); }),
-          fetch(meta.solution).then(r => { if(!r.ok) throw new Error('Solution not found'); return r.text(); })
+        // Load seed/starter/solution (solution is optional for pure practice)
+        const [seedText, starterText] = await Promise.all([
+          fetch(meta.seed).then(r=>{ if(!r.ok) throw new Error('Seed not found'); return r.text(); }),
+          fetch(meta.starter).then(r=>{ if(!r.ok) throw new Error('Starter not found'); return r.text(); })
         ]);
-
-        APP.seedSQL = seedText;
-        APP.starterSQL = starterText;
-        APP.solutionSQL = solutionText;
-        APP.expectColumns = Array.isArray(meta.expect_columns) ? meta.expect_columns : [];
+        APP.seedSQL = seedText; APP.starterSQL = starterText;
 
         // Reset DB with this seed
         db = new SQL.Database();
         db.run(APP.seedSQL);
 
-        // Load description file if present
+        // Load description file if present; show as plain text
         let desc = meta.description || '';
-        if (meta.description_file) {
-          try {
-            const d = await fetch(meta.description_file);
-            if (d.ok) desc = await d.text();
-          } catch(_) {}
+        if (meta.description_file){
+          try{ const d = await fetch(meta.description_file); if (d.ok) desc = await d.text(); } catch(_){}
         }
-        els.challengeTitle.textContent = meta.title || '';
+        els.challengeTitle.textContent = meta.title || 'Workspace';
         els.question.textContent = desc || 'No description provided.';
 
         // Put starter SQL in editor
         setSQL(APP.starterSQL);
 
-        // Show schema
+        // Show schema + quick preview
         renderSchema();
-
-        // Quick preview of first table
         const tnames = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
-        if (tnames.length && tnames[0].values.length) {
+        if (tnames.length && tnames[0].values.length){
           const firstTable = tnames[0].values[0][0];
           const res = db.exec(`SELECT * FROM ${firstTable} LIMIT 5`);
-          if (res.length) renderTable(res[0]);
-        } else {
-          els.results.innerHTML = '<span class="muted">Seed loaded (no tables).</span>';
+          if (res.length) renderTable(res[0]); else els.results.innerHTML = '<span class="muted">Seed loaded.</span>';
+        } else { els.results.innerHTML = '<span class="muted">Seed loaded (no tables).</span>'; }
+
+        // Load grader (optional; per-challenge)
+        APP.graderReady = false; APP.grader = null;
+        if (meta.grader){
+          await loadGrader(meta.grader);
         }
-      } catch (e) {
-        els.status.textContent = 'Load error: ' + e.message;
-        els.status.className = 'warn';
-      } finally {
-        setReady(true);
+
+        setControlsEnabled(true);
+      }catch(e){
+        els.status.textContent = 'Load error: ' + e.message; els.status.className='warn';
       }
     }
 
-    /* --------------------------------- Run --------------------------------- */
-    function runQuery() {
-      if (!db) { els.results.innerHTML = '<span class="warn">DB not ready.</span>'; return; }
+    async function loadGrader(src){
+      // Remove any previous injected script
+      const old = document.querySelector('script[data-challenge-grader]');
+      if (old) old.remove();
+
+      // Promise that resolves when the new script sets window.CHALLENGE_GRADER
+      APP.grader = null; window.CHALLENGE_GRADER = null;
+
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src + (src.includes('?') ? '&' : '?') + 'v=' + Date.now();
+        s.async = true;
+        s.dataset.challengeGrader = '1';
+        s.onload = () => {
+          if (window.CHALLENGE_GRADER) {
+            APP.grader = window.CHALLENGE_GRADER;
+            APP.graderReady = true;
+            els.status.textContent = 'Ready';
+            resolve();
+          } else {
+            els.status.textContent = 'Loaded (checks unavailable for this challenge)';
+            resolve(); // not fatal; just no checks
+          }
+        };
+        s.onerror = () => { els.status.textContent = 'Loaded (checks unavailable for this challenge)'; resolve(); };
+        document.body.appendChild(s);
+      });
+    }
+
+    /* ------------------------------- Actions ------------------------------ */
+    function runQuery(){
+      if (!db){ els.results.innerHTML = '<span class="muted">No challenge loaded.</span>'; return; }
       const sql = getSQL().trim();
       els.runInfo.textContent = 'Running…';
       const t0 = performance.now();
-      try {
+      try{
         const results = db.exec(sql);
-        const ms = Math.max(1, Math.round(performance.now() - t0));
-        if (!results.length) {
-          els.results.innerHTML = '<span class="muted">Query OK (no rows)</span>';
-          els.runInfo.textContent = `Time: ${ms} ms`;
-        } else {
-          renderTable(results[0]);
-          const rows = results[0].values.length;
-          els.runInfo.textContent = `Rows: ${rows} • Time: ${ms} ms`;
-        }
-      } catch (e) {
-        els.results.innerHTML = '<span class="warn">' + e.message + '</span>';
-        els.runInfo.textContent = '';
-      }
+        const ms = Math.max(1, Math.round(performance.now()-t0));
+        if (!results.length){ els.results.innerHTML = '<span class="muted">Query OK (no rows)</span>'; els.runInfo.textContent = `Time: ${ms} ms`; }
+        else { renderTable(results[0]); els.runInfo.textContent = `Rows: ${results[0].values.length} • Time: ${ms} ms`; }
+      }catch(e){ els.results.innerHTML = '<span class="warn">'+e.message+'</span>'; els.runInfo.textContent=''; }
     }
 
-    function resetDB() {
-      db = new SQL.Database();
-      db.run(APP.seedSQL);
-      els.runInfo.textContent = 'DB reset';
+    function resetDB(){
+      if (!APP.seedSQL){ els.results.innerHTML = '<span class="muted">No challenge loaded.</span>'; return; }
+      db = new SQL.Database(); db.run(APP.seedSQL); els.runInfo.textContent = 'DB reset';
       renderSchema();
       const tnames = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
-      if (tnames.length && tnames[0].values.length) {
-        const firstTable = tnames[0].values[0][0];
-        const res = db.exec(`SELECT * FROM ${firstTable} LIMIT 5`);
-        if (res.length) renderTable(res[0]);
-      } else {
-        els.results.innerHTML = '<span class="muted">Seed loaded (no tables).</span>';
-      }
+      if (tnames.length && tnames[0].values.length){
+        const firstTable = tnames[0].values[0][0]; const res = db.exec(`SELECT * FROM ${firstTable} LIMIT 5`);
+        if (res.length) renderTable(res[0]); else els.results.innerHTML = '<span class="muted">Seed loaded.</span>';
+      } else { els.results.innerHTML = '<span class="muted">Seed loaded (no tables).</span>'; }
     }
 
-    /* ------------------------------- Grading ------------------------------- */
-    function toTableHTML(res) {
-      if (!res || !res.length || !res[0].columns) return '<div class="muted">No rows.</div>';
-      return tableHTML(res[0]);
-    }
-
-    function grade() {
-      // Final grading for Part 3
-      try {
-        const userSQL = getSQL().trim();
-        if (!/^select/i.test(userSQL)) {
-          els.gradeStatus.textContent = 'Only SELECT queries can be submitted.';
-          els.gradeStatus.className = 'warn';
-          return;
-        }
-        const fresh = new SQL.Database();
-        fresh.run(APP.seedSQL);
-
-        // Build truth & user
-        fresh.run('DROP TABLE IF EXISTS __user__');
-        fresh.run('DROP TABLE IF EXISTS __truth__');
-        fresh.run(`CREATE TEMP TABLE __user__ AS ${userSQL}`);
-        fresh.run(`CREATE TEMP TABLE __truth__ AS ${APP.solutionSQL}`);
-
-        // Column sanity (expected final)
-        const expected = ['customer_id','deployment_model'];
-        const info = fresh.exec("PRAGMA table_info(__user__)");
-        if (!info.length) { els.gradeStatus.textContent='Your query returned no table.'; els.gradeStatus.className='warn'; return; }
-        const cols = info[0].values.map(r => String(r[1]).toLowerCase());
-        const missing = expected.filter(c => !cols.includes(c.toLowerCase()));
-        if (missing.length) { els.gradeStatus.textContent = '❌ Missing column(s): ' + missing.join(', '); els.gradeStatus.className='warn'; return; }
-
-        const miss = fresh.exec("SELECT * FROM __truth__ EXCEPT SELECT * FROM __user__");
-        const extra = fresh.exec("SELECT * FROM __user__  EXCEPT SELECT * FROM __truth__");
-        const hasMiss = miss.length && miss[0].values.length;
-        const hasExtra = extra.length && extra[0].values.length;
-
-        if (!hasMiss && !hasExtra) {
-          els.gradeStatus.textContent = '✅ Correct!';
-          els.gradeStatus.className = 'ok';
-          els.gradeDiff.innerHTML = '';
-        } else {
-          els.gradeStatus.textContent = '❌ Not quite — see differences below.';
-          els.gradeStatus.className = 'warn';
-          let out = '';
-          if (hasMiss) out += '<div class="muted">Missing rows (truth − yours):</div>' + toTableHTML(miss);
-          if (hasExtra) out += '<div class="muted">Extra rows (yours − truth):</div>' + toTableHTML(extra);
-          els.gradeDiff.innerHTML = out;
-        }
-      } catch (e) {
-        els.gradeStatus.textContent = 'Error grading: ' + e.message;
-        els.gradeStatus.className = 'warn';
-      }
-    }
-
-    /* ---------------------------- Mini-checks ---------------------------- */
-    function newFreshDB(){ const d=new SQL.Database(); d.run(APP.seedSQL); return d; }
-
-    function cmpSets(user, truth, expectedCols){
-      // Normalize both tables to arrays of strings (ordered by expectedCols)
-      const colIdx = (cols, name) => cols.findIndex(c => c.toLowerCase() === name.toLowerCase());
-      const mapToRows = (res, colsWanted) => {
-        const cols = res.columns;
-        const idxs = colsWanted.map(n => colIdx(cols,n));
-        if (idxs.some(i => i<0)) return { err: 'Missing expected columns: ' + colsWanted.filter((_,i)=>idxs[i]<0).join(', ') };
-        const rows = res.values.map(r => idxs.map(i => r[i]===null? '__NULL__' : String(r[i])).join('\u0001'));
-        return { rows, idxs, cols };
-      };
-      const u = mapToRows(user, expectedCols);
-      if (u.err) return { err: u.err };
-      const t = mapToRows(truth, expectedCols);
-      if (t.err) return { err: t.err };
-
-      const setU = new Set(u.rows);
-      const setT = new Set(t.rows);
-
-      const missingRows = [...setT].filter(x => !setU.has(x));
-      const extraRows   = [...setU].filter(x => !setT.has(x));
-
-      const toResult = (rows) => ({
-        columns: expectedCols,
-        values: rows.map(s => s.split('\u0001').map(v => v==='__NULL__'? null : v))
-      });
-
-      return {
-        ok: missingRows.length===0 && extraRows.length===0,
-        missing: toResult(missingRows),
-        extra: toResult(extraRows)
-      };
-    }
-
-    function truthPart1A(fresh){
-      const q = `
-        SELECT a.account_id
-        FROM accounts a
-        LEFT JOIN (
-          SELECT account_id FROM deployments WHERE active_to IS NULL GROUP BY account_id
-        ) act ON act.account_id = a.account_id
-        WHERE act.account_id IS NULL
-        ORDER BY a.account_id
-      `;
-      return fresh.exec(q)[0];
-    }
-    function truthPart1B(fresh){
-      const q = `
-        WITH cutoff AS (SELECT DATE(MAX(seen_at), '-365 day') AS d FROM telemetry)
-        SELECT source, COUNT(*) AS signals
-        FROM telemetry t, cutoff c
-        WHERE t.seen_at >= c.d
-        GROUP BY source
-      `;
-      return fresh.exec(q)[0];
-    }
-    function truthPart1C(fresh){
-      const q = `
-        WITH cutoff AS (SELECT DATE(MAX(seen_at), '-365 day') AS d FROM telemetry),
-        norm AS (
-          SELECT account_id,
-                 MAX(CASE WHEN value IS NOT NULL AND (
-                   LOWER(value) LIKE '%cloud%' OR LOWER(value) LIKE '%saas%' OR LOWER(value) LIKE '%hosted%' OR
-                   LOWER(value) LIKE '%aws%'  OR LOWER(value) LIKE '%gcp%'  OR LOWER(value) LIKE '%azure%'
-                 ) THEN 1 ELSE 0 END) AS has_cloud,
-                 MAX(CASE WHEN value IS NOT NULL AND (
-                   LOWER(value) LIKE '%onprem%' OR LOWER(value) LIKE '%on-prem%' OR LOWER(value) LIKE '%server%' OR
-                   LOWER(value) LIKE '%self-hosted%' OR LOWER(value) LIKE '%datacenter%'
-                 ) THEN 1 ELSE 0 END) AS has_onprem
-          FROM telemetry t, cutoff c
-          WHERE t.seen_at >= c.d
-          GROUP BY account_id
-        )
-        SELECT account_id FROM norm WHERE has_cloud=1 AND has_onprem=1 ORDER BY account_id
-      `;
-      return fresh.exec(q)[0];
-    }
-    function truthPart2Flags(fresh){
-      const q = `
-        WITH latest_active AS (
-          SELECT account_id, model_raw, MAX(DATE(active_from)) AS active_dt
-          FROM deployments
-          WHERE active_to IS NULL
-          GROUP BY account_id
-        ),
-        active_norm AS (
-          SELECT a.account_id, a.customer_id,
-                 CASE
-                   WHEN LOWER(l.model_raw) LIKE '%cloud%' OR LOWER(l.model_raw) LIKE '%saas%' OR LOWER(l.model_raw) LIKE '%hosted%' OR
-                        LOWER(l.model_raw) LIKE '%aws%'  OR LOWER(l.model_raw) LIKE '%gcp%'  OR LOWER(l.model_raw) LIKE '%azure%' THEN 'Cloud'
-                   WHEN LOWER(l.model_raw) LIKE '%onprem%' OR LOWER(l.model_raw) LIKE '%on-prem%' OR LOWER(l.model_raw) LIKE '%server%' OR
-                        LOWER(l.model_raw) LIKE '%self-hosted%' OR LOWER(l.model_raw) LIKE '%datacenter%' THEN 'OnPrem'
-                   ELSE NULL
-                 END AS model_active
-          FROM accounts a
-          LEFT JOIN latest_active l USING (account_id)
-        ),
-        cutoff AS (SELECT DATE(MAX(seen_at), '-365 day') AS d FROM telemetry),
-        signal_flags AS (
-          SELECT account_id,
-                 MAX(CASE WHEN value IS NOT NULL AND (
-                   LOWER(value) LIKE '%cloud%' OR LOWER(value) LIKE '%saas%' OR LOWER(value) LIKE '%hosted%' OR
-                   LOWER(value) LIKE '%aws%'  OR LOWER(value) LIKE '%gcp%'  OR LOWER(value) LIKE '%azure%'
-                 ) THEN 1 ELSE 0 END) AS cloud_sig,
-                 MAX(CASE WHEN value IS NOT NULL AND (
-                   LOWER(value) LIKE '%onprem%' OR LOWER(value) LIKE '%on-prem%' OR LOWER(value) LIKE '%server%' OR
-                   LOWER(value) LIKE '%self-hosted%' OR LOWER(value) LIKE '%datacenter%'
-                 ) THEN 1 ELSE 0 END) AS onprem_sig
-          FROM telemetry t, cutoff c
-          WHERE t.seen_at >= c.d
-          GROUP BY account_id
-        )
-        SELECT
-          an.account_id,
-          an.customer_id,
-          CASE WHEN an.model_active='Cloud' THEN 1
-               WHEN an.model_active IS NULL AND COALESCE(sf.cloud_sig,0)=1 THEN 1
-               ELSE 0 END AS has_cloud_flag,
-          CASE WHEN an.model_active='OnPrem' THEN 1
-               WHEN an.model_active IS NULL AND COALESCE(sf.onprem_sig,0)=1 THEN 1
-               ELSE 0 END AS has_onprem_flag,
-          CASE WHEN an.model_active IS NULL AND COALESCE(sf.cloud_sig,0)=1 AND COALESCE(sf.onprem_sig,0)=1 THEN 1 ELSE 0 END AS account_hybrid_flag,
-          CASE WHEN an.model_active IS NOT NULL THEN 'Active'
-               WHEN COALESCE(sf.cloud_sig,0)=1 OR COALESCE(sf.onprem_sig,0)=1 THEN 'Telemetry'
-               ELSE 'None' END AS source_of_truth
-        FROM active_norm an
-        LEFT JOIN signal_flags sf USING (account_id)
-        ORDER BY an.customer_id, an.account_id
-      `;
-      return fresh.exec(q)[0];
-    }
-
-    function miniCheck(){
+    async function miniCheck(){
+      if (!APP.graderReady || !APP.grader){ els.miniStatus.textContent = 'Checks unavailable for this challenge.'; return; }
       try{
         els.miniStatus.textContent = 'Checking…'; els.miniStatus.className = 'muted';
         els.gradeDiff.innerHTML = ''; els.gradeStatus.textContent = '';
 
-        const mode = els.whichCheck.value;
+        const partId = els.whichCheck.value;
         const userSQL = getSQL().trim();
-        if (!/^select/i.test(userSQL)) { els.miniStatus.textContent='Write a SELECT query to check.'; els.miniStatus.className='warn'; return; }
+        if (!/^select/i.test(userSQL)){ els.miniStatus.textContent='Write a SELECT query to check.'; els.miniStatus.className='warn'; return; }
 
-        const freshTruth = newFreshDB();
-        const freshUser  = newFreshDB();
-
-        // Run user's query
-        const uRes = freshUser.exec(`SELECT * FROM (${userSQL})`);
-        if (!uRes.length) { els.miniStatus.textContent='Your query returned no rows.'; els.miniStatus.className='warn'; return; }
-
-        let truthRes, expectedCols;
-
-        if (mode === '1A') {
-          truthRes = truthPart1A(freshTruth);
-          expectedCols = ['account_id'];
-        } else if (mode === '1B') {
-          truthRes = truthPart1B(freshTruth);
-          expectedCols = ['source','signals'];
-        } else if (mode === '1C') {
-          truthRes = truthPart1C(freshTruth);
-          expectedCols = ['account_id'];
-        } else if (mode === '2') {
-          truthRes = truthPart2Flags(freshTruth);
-          expectedCols = ['account_id','customer_id','has_cloud_flag','has_onprem_flag','account_hybrid_flag','source_of_truth'];
-        } else if (mode === '3') {
-          // Defer to final grader
-          grade(); els.miniStatus.textContent='Ran final grade (Part 3).'; els.miniStatus.className='muted'; return;
-        } else {
-          els.miniStatus.textContent='Unknown check mode.'; els.miniStatus.className='warn'; return;
-        }
-
-        const cmp = cmpSets(uRes[0], truthRes, expectedCols);
-        if (cmp.err) {
-          els.miniStatus.textContent = '❌ ' + cmp.err;
-          els.miniStatus.className = 'warn';
-          els.gradeDiff.innerHTML = '';
-          return;
-        }
-        if (cmp.ok) {
-          els.miniStatus.textContent = '✅ Passed!';
+        const r = await APP.grader.check(partId, userSQL, APP.seedSQL, SQL);
+        if (r && r.ok){
+          els.miniStatus.textContent = r.status || '✅ Passed!';
           els.miniStatus.className = 'ok';
-          els.gradeDiff.innerHTML = '';
+          els.gradeDiff.innerHTML = r.diffHTML || '';
         } else {
-          els.miniStatus.textContent = '❌ Not quite — see differences below.';
+          els.miniStatus.textContent = (r && r.status) ? r.status : '❌ Not correct.';
           els.miniStatus.className = 'warn';
-          let out = '';
-          if (cmp.missing.values.length) out += '<div class="muted">Missing rows (truth − yours):</div>' + tableHTML(cmp.missing);
-          if (cmp.extra.values.length)   out += '<div class="muted">Extra rows (yours − truth):</div>' + tableHTML(cmp.extra);
-          els.gradeDiff.innerHTML = out;
+          els.gradeDiff.innerHTML = (r && r.diffHTML) ? r.diffHTML : '';
         }
-      } catch(e){
-        els.miniStatus.textContent = 'Error: ' + e.message;
-        els.miniStatus.className = 'warn';
+      }catch(e){
+        els.miniStatus.textContent = 'Error: ' + e.message; els.miniStatus.className = 'warn';
       }
     }
 
-    // Events
+    async function grade(){
+      if (!APP.graderReady || !APP.grader){ els.gradeStatus.textContent = 'Checks unavailable for this challenge.'; els.gradeStatus.className='warn'; return; }
+      try{
+        els.gradeStatus.textContent = 'Grading…'; els.gradeStatus.className = 'muted'; els.gradeDiff.innerHTML = '';
+        const userSQL = getSQL().trim();
+        if (!/^select/i.test(userSQL)){ els.gradeStatus.textContent='Only SELECT queries can be submitted.'; els.gradeStatus.className='warn'; return; }
+
+        const r = await APP.grader.grade(userSQL, APP.seedSQL, SQL);
+        if (r && r.ok){
+          els.gradeStatus.textContent = r.status || '✅ Correct!';
+          els.gradeStatus.className = 'ok';
+          els.gradeDiff.innerHTML = r.diffHTML || '';
+        } else {
+          els.gradeStatus.textContent = (r && r.status) ? r.status : '❌ Not quite — see differences below.';
+          els.gradeStatus.className = 'warn';
+          els.gradeDiff.innerHTML = (r && r.diffHTML) ? r.diffHTML : '';
+        }
+      }catch(e){
+        els.gradeStatus.textContent = 'Error: ' + e.message; els.gradeStatus.className = 'warn';
+      }
+    }
+
+    // Wire up events
     document.getElementById('run').addEventListener('click', runQuery);
     document.getElementById('reset').addEventListener('click', resetDB);
-    document.getElementById('check').addEventListener('click', grade);
     document.getElementById('mini-check').addEventListener('click', miniCheck);
-    document.addEventListener('keydown', (e) => {
-      if (cm) { /* CodeMirror handles keymaps */ }
-      else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') runQuery();
-    });
+    document.getElementById('check').addEventListener('click', grade);
+    document.addEventListener('keydown', (e)=>{ if (!cm && (e.ctrlKey||e.metaKey) && e.key==='Enter') runQuery(); });
 
     // Start
     boot();
