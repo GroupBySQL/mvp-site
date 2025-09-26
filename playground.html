@@ -21,12 +21,13 @@
       background:#fff; display:flex; justify-content:space-between; align-items:center; gap:12px
     }
     header h1{ margin:0; font-size:18px }
-    #status{ color:var(--muted); font-size:13px }
+    #status{ display:none } /* keep for JS but hide visually */
+
     .hstack{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
 
     .pickerbar{
       background:#fff; border-bottom:1px solid var(--border);
-      padding:10px 20px; display:flex; align-items:center; gap:10px; flex-wrap:wrap
+      padding:10px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap
     }
     .help{ color:#374151; font-size:13px }
 
@@ -49,6 +50,8 @@
     button.success{ background:var(--ok); color:#fff; border-color:var(--ok); cursor:pointer }
     button.success:hover{ background:var(--ok-d); border-color:var(--ok-d) }
     button:disabled{ opacity:.5; cursor:not-allowed }
+    /* make disabled success clearly disabled */
+    button.success:disabled{ background:#e5e7eb; border-color:#e5e7eb; color:#9ca3af }
 
     .toolbar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px }
 
@@ -82,6 +85,9 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       line-height:1.35;
     }
+
+    /* hide the check controls until a challenge is loaded */
+    .when-ready[disabled]{ display:none; }
   </style>
 
   <!-- CodeMirror -->
@@ -91,32 +97,28 @@
 <body>
   <header>
     <div>
-      <h1 style="display:flex; align-items:baseline; gap:8px; margin-bottom:2px">
-        SQL Playground <span class="muted" style="font-size:13px">MVP</span>
-      </h1>
-      <div id="status" class="muted">Pick a challenge to start</div>
+      <h1>SQL Playground</h1>
+      <div id="status" class="muted"></div>
     </div>
+  </header>
+
+  <!-- Picker + neutral instruction -->
+  <div class="pickerbar">
     <div class="hstack">
       <label for="challenge" class="muted" style="font-size:13px;">Challenge</label>
       <select id="challenge"></select>
     </div>
-  </header>
-
-  <!-- Instruction bar (neutral; outside panels) -->
-  <div class="pickerbar">
-    <div class="help">
-      Pick one from the <b>Challenge</b> dropdown to review details, write your SQL solution on the right.
-    </div>
+    <div class="help">Select one of the real-world style challenges to start.</div>
   </div>
 
   <main>
-    <!-- LEFT: neutral workspace, description loads after selection -->
+    <!-- LEFT: neutral workspace; description loads after selection -->
     <section class="panel">
       <div class="pad">
         <h2 id="challenge-title">Workspace</h2>
 
-        <div id="question" class="muted" style="white-space:pre-wrap;">
-          Practice with real-world style challenges. Select one from the <b>Challenge</b> dropdown above to see its brief and schema here.
+        <div id="question" class="muted">
+          Details and schema of the challenge will show here.
         </div>
 
         <h3 style="margin-top:12px;">Schema</h3>
@@ -124,18 +126,17 @@
 
         <h3 style="margin-top:12px;">Validate your result</h3>
         <div class="muted" style="font-size:14px;">
-          Select the corresponding task to check your solution, then click <b>Check</b>.
-          We compare your current result to the expected answer for that task. (Available after you load a challenge.)
+          Choose the task your query answers, then click <b>Check</b>. We’ll compare your result with the expected answer. (Appears after you load a challenge.)
         </div>
 
         <div class="hstack" style="margin-top:6px">
-          <select id="which-check" disabled>
+          <select id="which-check" class="when-ready" disabled>
             <option value="1A">Part 1 — Audit</option>
             <option value="2">Part 2 — Flags table</option>
             <option value="3">Part 3 — Roll-up (final)</option>
           </select>
-          <button id="mini-check" disabled>Check</button>
-          <span id="mini-status" class="muted"></span>
+          <button id="mini-check" class="when-ready" disabled>Check</button>
+          <span id="mini-status" class="muted when-ready"></span>
         </div>
       </div>
     </section>
@@ -148,13 +149,14 @@
 
         <div class="toolbar">
           <button id="run" class="primary" disabled title="Ctrl/Cmd + Enter">Run</button>
+          <span class="muted" style="font-size:12px;">Ctrl/⌘+Enter</span>
           <button id="reset" disabled>Reset DB</button>
           <button id="check" class="success" disabled>Submit (Grade)</button>
           <span id="run-info" class="muted"></span>
           <span id="grade-status" class="muted"></span>
         </div>
 
-        <div id="results" class="muted">Pick a challenge to preview seed data here.</div>
+        <div id="results" class="muted">Test results will show here.</div>
         <div id="grade-diff"></div>
       </div>
     </section>
@@ -204,8 +206,8 @@
       // Check actions only enabled if a grader is present
       const canCheck = on && APP.graderReady;
       els.check.disabled = !canCheck; els.miniCheckBtn.disabled = !canCheck; els.whichCheck.disabled = !canCheck;
-      els.status.textContent = on ? (canCheck ? 'Ready' : 'Loaded (checks unavailable for this challenge)') : 'Pick a challenge to start';
-      els.status.className = 'muted';
+      // Show/hide check row entirely
+      document.querySelectorAll('.when-ready').forEach(el => el.style.display = (canCheck ? '' : 'none'));
     }
     function getSQL(){ return cm ? cm.getValue() : els.editorTA.value; }
     function setSQL(s){ if (cm) cm.setValue(s); else els.editorTA.value = s; }
@@ -283,7 +285,7 @@
         if (!idxResp.ok) throw new Error('Cannot load challenges.json ('+idxResp.status+')');
         APP.challenges = await idxResp.json();
         if (!Array.isArray(APP.challenges) || !APP.challenges.length){
-          els.status.textContent = 'No challenges found.'; els.status.className='warn'; return;
+          els.results.textContent = 'No challenges found.'; return;
         }
 
         // Populate dropdown with placeholder
@@ -296,9 +298,8 @@
 
         // Neutral state
         setControlsEnabled(false);
-        els.status.textContent = 'Pick a challenge to start';
       }catch(e){
-        els.status.textContent = 'Failed to initialize: ' + e.message; els.status.className='warn';
+        els.results.textContent = 'Failed to initialize: ' + e.message;
       }
     }
 
@@ -307,10 +308,10 @@
       APP.grader = null; APP.graderReady = false; db = null;
       setControlsEnabled(false);
       els.challengeTitle.textContent = 'Workspace';
-      els.question.innerHTML = 'Practice with real-world style challenges. Pick one from the <b>Challenge</b> dropdown above to load its brief and schema here.';
+      els.question.textContent = 'Details and schema of the challenge will show here.';
       setSQL('-- Pick a challenge to load starter SQL here.');
       els.schema.textContent = '—';
-      els.results.textContent = 'Pick a challenge to preview seed data here.';
+      els.results.textContent = 'Test results will show here.';
       els.gradeDiff.innerHTML = ''; els.gradeStatus.textContent = ''; els.runInfo.textContent = '';
       els.miniStatus.textContent = '';
     }
@@ -325,24 +326,23 @@
     async function loadChallenge(id){
       try{
         setControlsEnabled(false);
-        els.status.textContent = 'Loading challenge…';
 
         const meta = APP.challenges.find(c=>c.id===id);
         if (!meta) throw new Error('Challenge not found: ' + id);
         APP.current = meta;
 
-        // Load seed/starter/solution (solution is optional for pure practice)
+        // Load seed & starter
         const [seedText, starterText] = await Promise.all([
           fetch(meta.seed).then(r=>{ if(!r.ok) throw new Error('Seed not found'); return r.text(); }),
           fetch(meta.starter).then(r=>{ if(!r.ok) throw new Error('Starter not found'); return r.text(); })
         ]);
         APP.seedSQL = seedText; APP.starterSQL = starterText;
 
-        // Reset DB with this seed
+        // Reset DB
         db = new SQL.Database();
         db.run(APP.seedSQL);
 
-        // Load description file if present; show as plain text
+        // Description
         let desc = meta.description || '';
         if (meta.description_file){
           try{ const d = await fetch(meta.description_file); if (d.ok) desc = await d.text(); } catch(_){}
@@ -350,10 +350,10 @@
         els.challengeTitle.textContent = meta.title || 'Workspace';
         els.question.textContent = desc || 'No description provided.';
 
-        // Put starter SQL in editor
+        // Starter SQL
         setSQL(APP.starterSQL);
 
-        // Show schema + quick preview
+        // Schema + preview
         renderSchema();
         const tnames = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
         if (tnames.length && tnames[0].values.length){
@@ -364,41 +364,30 @@
 
         // Load grader (optional; per-challenge)
         APP.graderReady = false; APP.grader = null;
-        if (meta.grader){
-          await loadGrader(meta.grader);
-        }
+        if (meta.grader){ await loadGrader(meta.grader); }
 
         setControlsEnabled(true);
       }catch(e){
-        els.status.textContent = 'Load error: ' + e.message; els.status.className='warn';
+        els.results.textContent = 'Load error: ' + e.message;
       }
     }
 
     async function loadGrader(src){
-      // Remove any previous injected script
       const old = document.querySelector('script[data-challenge-grader]');
       if (old) old.remove();
 
-      // Promise that resolves when the new script sets window.CHALLENGE_GRADER
       APP.grader = null; window.CHALLENGE_GRADER = null;
 
-      await new Promise((resolve, reject) => {
+      await new Promise((resolve) => {
         const s = document.createElement('script');
         s.src = src + (src.includes('?') ? '&' : '?') + 'v=' + Date.now();
         s.async = true;
         s.dataset.challengeGrader = '1';
         s.onload = () => {
-          if (window.CHALLENGE_GRADER) {
-            APP.grader = window.CHALLENGE_GRADER;
-            APP.graderReady = true;
-            els.status.textContent = 'Ready';
-            resolve();
-          } else {
-            els.status.textContent = 'Loaded (checks unavailable for this challenge)';
-            resolve(); // not fatal; just no checks
-          }
+          if (window.CHALLENGE_GRADER) { APP.grader = window.CHALLENGE_GRADER; APP.graderReady = true; }
+          resolve();
         };
-        s.onerror = () => { els.status.textContent = 'Loaded (checks unavailable for this challenge)'; resolve(); };
+        s.onerror = () => resolve();
         document.body.appendChild(s);
       });
     }
