@@ -1,0 +1,61 @@
+-- Explore data if needed:
+-- SELECT * FROM customers;
+-- SELECT * FROM accounts;
+-- SELECT * FROM deployments ORDER BY account_id, active_from;
+-- SELECT * FROM telemetry ORDER BY account_id, seen_at;
+
+-- PART 1: Accounts with telemetry but NO current deployment record
+-- SELECT DISTINCT t.account_id
+-- FROM telemetry t
+-- LEFT JOIN (
+--   SELECT account_id
+--   FROM deployments
+--   WHERE active_to IS NULL
+--   GROUP BY account_id
+-- ) cur USING (account_id)
+-- WHERE cur.account_id IS NULL
+-- ORDER BY t.account_id;
+
+-- PART 2: Per-account flags (Deployment > Telemetry)
+-- WITH cur AS (
+--   SELECT account_id, model_raw, MAX(DATE(active_from)) AS active_dt
+--   FROM deployments
+--   WHERE active_to IS NULL
+--   GROUP BY account_id
+-- )
+-- SELECT a.account_id, a.customer_id,
+--   CASE
+--     WHEN cur.account_id IS NOT NULL AND LOWER(cur.model_raw) IN ('cloud','saas','hosted','aws','gcp','azure') THEN 1
+--     ELSE 0
+--   END AS has_cloud_flag,
+--   CASE
+--     WHEN cur.account_id IS NOT NULL AND (
+--       LOWER(cur.model_raw) LIKE '%onprem%' OR LOWER(cur.model_raw) LIKE '%on-prem%' OR
+--       LOWER(cur.model_raw) IN ('server','datacenter','self-hosted')
+--     ) THEN 1
+--     WHEN cur.account_id IS NULL AND EXISTS (SELECT 1 FROM telemetry t WHERE t.account_id=a.account_id) THEN 1
+--     ELSE 0
+--   END AS has_onprem_flag,
+--   CASE
+--     WHEN cur.account_id IS NOT NULL THEN 'Deployment'
+--     WHEN EXISTS (SELECT 1 FROM telemetry t WHERE t.account_id=a.account_id) THEN 'Telemetry'
+--     ELSE 'None'
+--   END AS source_of_truth
+-- FROM accounts a
+-- LEFT JOIN cur USING (account_id)
+-- ORDER BY a.customer_id, a.account_id;
+
+-- PART 3: Customer roll-up (Cloud/OnPrem/Hybrid/None)
+-- WITH flags AS ( /* paste your Part 2 query here as a CTE named flags */ )
+-- SELECT c.customer_id,
+--   CASE
+--     WHEN SUM(has_cloud_flag)>0 AND SUM(has_onprem_flag)>0 THEN 'Hybrid'
+--     WHEN SUM(has_cloud_flag)>0 THEN 'Cloud'
+--     WHEN SUM(has_onprem_flag)>0 THEN 'OnPrem'
+--     ELSE 'None'
+--   END AS deployment_model
+-- FROM flags f
+-- JOIN accounts a USING (account_id)
+-- JOIN customers c USING (customer_id)
+-- GROUP BY c.customer_id
+-- ORDER BY c.customer_id;
