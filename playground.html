@@ -29,6 +29,7 @@
       background:#fff; border-bottom:1px solid var(--border);
       padding:10px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap
     }
+    .pickerbar .hstack + .hstack { margin-left: 8px; }
     .help{ color:#374151; font-size:13px }
 
     main{
@@ -86,8 +87,8 @@
       line-height:1.35;
     }
 
-    /* hide the check controls until a challenge is loaded */
-    .when-ready[disabled]{ display:none; }
+    /* hide the check controls until a challenge+grader is loaded AND dialect is SQL */
+    .when-ready { display:none; }
   </style>
 
   <!-- CodeMirror -->
@@ -107,6 +108,13 @@
     <div class="hstack">
       <label for="challenge" class="muted" style="font-size:13px;">Challenge</label>
       <select id="challenge"></select>
+    </div>
+    <div class="hstack">
+      <label for="editor-mode" class="muted" style="font-size:13px;">Language</label>
+      <select id="editor-mode">
+        <option value="sql">SQL (SQLite engine)</option>
+        <option value="mysql">MySQL (syntax only)</option>
+      </select>
     </div>
     <div class="help">Select one of the real-world style challenges to start.</div>
   </div>
@@ -154,6 +162,7 @@
           <button id="check" class="success" disabled>Submit (Grade)</button>
           <span id="run-info" class="muted"></span>
           <span id="grade-status" class="muted"></span>
+          <span id="dialect-note" class="muted" style="font-size:12px;"></span>
         </div>
 
         <div id="results" class="muted">Test results will show here.</div>
@@ -184,6 +193,7 @@
     const els = {
       status: document.getElementById('status'),
       challengeSelect: document.getElementById('challenge'),
+      modeSelect: document.getElementById('editor-mode'),
       challengeTitle: document.getElementById('challenge-title'),
       question: document.getElementById('question'),
       schema: document.getElementById('schema'),
@@ -197,18 +207,47 @@
       results: document.getElementById('results'),
       whichCheck: document.getElementById('which-check'),
       miniCheckBtn: document.getElementById('mini-check'),
-      miniStatus: document.getElementById('mini-status')
+      miniStatus: document.getElementById('mini-status'),
+      dialectNote: document.getElementById('dialect-note')
     };
 
     /* ----------------------------- UI helpers ----------------------------- */
-    function setControlsEnabled(on){
-      els.run.disabled = !on; els.reset.disabled = !on;
-      // Check actions only enabled if a grader is present
-      const canCheck = on && APP.graderReady;
-      els.check.disabled = !canCheck; els.miniCheckBtn.disabled = !canCheck; els.whichCheck.disabled = !canCheck;
-      // Show/hide check row entirely
-      document.querySelectorAll('.when-ready').forEach(el => el.style.display = (canCheck ? '' : 'none'));
+    function sqliteModeOn(){ return !els.modeSelect || els.modeSelect.value === 'sql'; }
+
+    function updateDialectNote(){
+      if (sqliteModeOn()){
+        els.dialectNote.textContent = ''; // silent when SQL
+      } else {
+        els.dialectNote.textContent = 'Checks run on SQLite. MySQL mode changes highlighting only.';
+      }
     }
+
+    function toggleCheckRow(canShow){
+      document.querySelectorAll('.when-ready').forEach(el => el.style.display = (canShow ? '' : 'none'));
+    }
+
+    function setControlsEnabled(on){
+      els.run.disabled = !on;
+      els.reset.disabled = !on;
+
+      const sqliteOnly = sqliteModeOn();
+      const canCheck = on && APP.graderReady && sqliteOnly;
+
+      els.check.disabled = !canCheck;
+      els.miniCheckBtn.disabled = !canCheck;
+      els.whichCheck.disabled = !canCheck;
+
+      toggleCheckRow(canCheck);
+
+      if (on && APP.graderReady && !sqliteOnly){
+        els.miniStatus.textContent = 'Checks are SQLite-only. Switch Language to SQL to enable.';
+        els.miniStatus.className = 'muted';
+      } else {
+        els.miniStatus.textContent = '';
+      }
+      updateDialectNote();
+    }
+
     function getSQL(){ return cm ? cm.getValue() : els.editorTA.value; }
     function setSQL(s){ if (cm) cm.setValue(s); else els.editorTA.value = s; }
 
@@ -293,14 +332,25 @@
           .concat(APP.challenges.map(c => `<option value="${c.id}">${c.title}</option>`));
         els.challengeSelect.innerHTML = opts.join('');
 
-        // Change handler: load only after selection
+        // Change handlers
         els.challengeSelect.addEventListener('change', onChallengeChange);
+        els.modeSelect.addEventListener('change', onDialectChange);
 
         // Neutral state
         setControlsEnabled(false);
+        updateDialectNote();
       }catch(e){
         els.results.textContent = 'Failed to initialize: ' + e.message;
       }
+    }
+
+    function onDialectChange(){
+      if (!cm) return;
+      const v = els.modeSelect.value;
+      if (v === 'mysql') cm.setOption('mode', 'text/x-mysql');
+      else cm.setOption('mode', 'text/x-sql'); // default
+      // Re-evaluate which controls are enabled (checks are SQLite-only)
+      setControlsEnabled(!!db);
     }
 
     function resetToNeutral(){
@@ -419,6 +469,7 @@
 
     async function miniCheck(){
       if (!APP.graderReady || !APP.grader){ els.miniStatus.textContent = 'Checks unavailable for this challenge.'; return; }
+      if (!sqliteModeOn()){ els.miniStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.'; els.miniStatus.className='warn'; return; }
       try{
         els.miniStatus.textContent = 'Checking…'; els.miniStatus.className = 'muted';
         els.gradeDiff.innerHTML = ''; els.gradeStatus.textContent = '';
@@ -444,6 +495,7 @@
 
     async function grade(){
       if (!APP.graderReady || !APP.grader){ els.gradeStatus.textContent = 'Checks unavailable for this challenge.'; els.gradeStatus.className='warn'; return; }
+      if (!sqliteModeOn()){ els.gradeStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.'; els.gradeStatus.className='warn'; return; }
       try{
         els.gradeStatus.textContent = 'Grading…'; els.gradeStatus.className = 'muted'; els.gradeDiff.innerHTML = '';
         const userSQL = getSQL().trim();
