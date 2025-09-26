@@ -54,7 +54,7 @@
 
     pre.ascii{ background:#f9fafb; border:1px solid var(--border); border-radius:10px; padding:10px; overflow:auto; margin:8px 0; font-size:13px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height:1.35; }
 
-    /* Lightweight Markdown styling */
+    /* Markdown styling for description */
     .markdown :is(h1,h2,h3){ margin:10px 0 6px; font-weight:700 }
     .markdown h1{ font-size:18px }
     .markdown h2{ font-size:16px }
@@ -126,7 +126,7 @@
     <section class="panel">
       <div class="pad">
         <h2>Editor</h2>
-        <textarea id="editor">-- Pick a challenge to load starter SQL here. (v-plain-md)</textarea>
+        <textarea id="editor">-- Pick a challenge to load starter SQL here. (v-markdown)</textarea>
 
         <div class="toolbar">
           <button id="run" class="primary" disabled title="Ctrl/Cmd + Enter">Run</button>
@@ -148,6 +148,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+  <!-- Markdown renderer + sanitizer -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
   <script>
     let SQL, db, cm = null;
@@ -177,49 +180,6 @@
 
     // cache-buster helper
     const bust = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + Date.now();
-
-    // ---------- Lightweight Markdown renderer (no external libs) ----------
-    function esc(s){return String(s).replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
-    function mdInline(s){
-      s = esc(s);
-      s = s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
-      s = s.replace(/`([^`]+)`/g,'<code>$1</code>');
-      return s;
-    }
-    function renderMarkdown(src){
-      if (!src) return '<p class="muted">No description provided.</p>';
-      src = src.replace(/\r\n?/g,'\n');
-      const lines = src.split('\n');
-      let out = [], i=0, inCode=false, codeBuf=[], inList=false, listBuf=[];
-      const flushList=()=>{ if(inList){ out.push('<ul>'+listBuf.map(li=>`<li>${mdInline(li)}</li>`).join('')+'</ul>'); inList=false; listBuf=[]; } };
-      const flushCode=()=>{ if(inCode){ out.push('<pre class="ascii"><code>'+esc(codeBuf.join('\n'))+'</code></pre>'); inCode=false; codeBuf=[]; } };
-      while(i<lines.length){
-        const L = lines[i];
-        if (/^```/.test(L)){ // toggle code block
-          if (inCode){ flushCode(); } else { inCode=true; codeBuf=[]; }
-          i++; continue;
-        }
-        if (inCode){ codeBuf.push(L); i++; continue; }
-
-        if (/^\s*[-*]\s+/.test(L)){ // list
-          if (!inList) inList=true;
-          listBuf.push(L.replace(/^\s*[-*]\s+/,''));
-          i++; continue;
-        } else { flushList(); }
-
-        if (/^#{1,3}\s+/.test(L)){ // headings
-          const m = L.match(/^(#{1,3})\s+(.*)$/); const lvl=m[1].length, txt=mdInline(m[2]);
-          out.push(`<h${lvl}>${txt}</h${lvl}>`); i++; continue;
-        }
-
-        if (/^\s*$/.test(L)){ out.push(''); i++; continue; } // blank
-
-        out.push('<p>'+mdInline(L)+'</p>'); i++;
-      }
-      flushList(); flushCode();
-      return out.join('\n').replace(/\n{3,}/g,'\n\n');
-    }
-    // ----------------------------------------------------------------------
 
     const els = {
       status: document.getElementById('status'),
@@ -317,7 +277,7 @@
         if (!idxResp.ok) throw new Error('Cannot load challenges.json ('+idxResp.status+')');
         APP.challenges = await idxResp.json();
 
-        // sort by 'order', display as "Challenge N: Title"
+        // sort by 'order' (if present), then labels with "Challenge N: Title"
         APP.challenges.sort((a,b)=> (a.order ?? 1e9) - (b.order ?? 1e9));
         const opts = ['<option value="">— Select a challenge —</option>']
           .concat(APP.challenges.map(c => {
@@ -349,7 +309,7 @@
       setControlsEnabled(false);
       els.challengeTitle.textContent = 'Workspace';
       els.question.innerHTML = '<p>Details and schema of the challenge will show here.</p>';
-      setSQL('-- Pick a challenge to load starter SQL here. (v-plain-md)');
+      setSQL('-- Pick a challenge to load starter SQL here. (v-markdown)');
       els.schema.textContent = '—';
       els.results.textContent = 'Test results will show here.';
       els.gradeDiff.innerHTML = ''; els.gradeStatus.textContent = ''; els.runInfo.textContent = '';
@@ -379,14 +339,15 @@
 
         db = new SQL.Database(); db.run(APP.seedSQL);
 
-        // description (cache-busted, render Markdown)
+        // description (cache-busted, render Markdown -> safe HTML)
         let desc = meta.description || '';
         if (meta.description_file){
           try{ const d = await fetch(bust(meta.description_file)); if (d.ok) desc = await d.text(); } catch(_){}
         }
         const label = (meta.order ? `Challenge ${meta.order}: ${meta.title}` : (meta.title || 'Workspace'));
         els.challengeTitle.textContent = label;
-        els.question.innerHTML = '<div class="markdown">'+renderMarkdown(desc || '')+'</div>';
+        const html = DOMPurify.sanitize(marked.parse(desc || 'No description provided.'));
+        els.question.innerHTML = html;
 
         // editor: always show a clean template (no answers)
         setSQL(DEFAULT_STARTER);
@@ -486,8 +447,7 @@
           els.gradeStatus.textContent = (r && r.status) ? r.status : '❌ Not quite — see differences below.'; els.gradeStatus.className = 'warn';
           els.gradeDiff.innerHTML = (r && r.diffHTML) ? r.diffHTML : '';
         }
-      }catch(e){
-        els.gradeStatus.textContent = 'Error: ' + e.message; els.gradeStatus.className = 'warn'; }
+      }catch(e){ els.gradeStatus.textContent = 'Error: ' + e.message; els.gradeStatus.className = 'warn'; }
     }
 
     document.getElementById('run').addEventListener('click', runQuery);
