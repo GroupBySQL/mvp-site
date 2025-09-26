@@ -1,11 +1,11 @@
 [
   {
-    "id": "os-latest-active",
-    "title": "OS share by customer (latest active key)",
-    "description": "Business question: How many of our customers have what OS?\nRules:\n• Use the latest ACTIVE key per account (active_to IS NULL), keep the latest by active_from.\n• Normalize OS strings: win* → Windows; linux*/ubuntu/debian → Linux; else None.\n• Roll up per customer: Windows / Linux / Both / None.\nReturn columns: customer_id, customer_os.",
-    "seed": "challenges/os-latest-active/seed.sql",
-    "starter": "challenges/os-latest-active/starter.sql",
-    "solution": "challenges/os-latest-active/solution.sql",
-    "expect_columns": ["customer_id","customer_os"]
+    "id": "deployment-distribution-v1",
+    "title": "Deployment distribution by customer",
+    "description_file": "challenges/deployment-distribution-v1/description.md",
+    "seed": "challenges/deployment-distribution-v1/seed.sql",
+    "starter": "challenges/deployment-distribution-v1/starter.sql",
+    "grader": "challenges/deployment-distribution-v1/grader.js"
   }
+  /* , { ... your existing os-latest-active entry ... } */
 ]
