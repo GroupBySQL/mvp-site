@@ -1,6 +1,7 @@
 [
   {
     "id": "deployment-distribution-v1",
+    "order": 1,
     "title": "Deployment distribution by customer",
     "description_file": "challenges/deployment-distribution-v1/description.md",
     "seed": "challenges/deployment-distribution-v1/seed.sql",
