@@ -1,56 +1,76 @@
+-- === Schema ===
 DROP TABLE IF EXISTS customers;
 DROP TABLE IF EXISTS accounts;
 DROP TABLE IF EXISTS deployments;
 DROP TABLE IF EXISTS telemetry;
 
-CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, customer_name TEXT);
-CREATE TABLE accounts  (account_id  INTEGER PRIMARY KEY, customer_id INTEGER NOT NULL);
+CREATE TABLE customers (
+  customer_id INTEGER PRIMARY KEY,
+  name TEXT
+);
 
+CREATE TABLE accounts (
+  account_id INTEGER PRIMARY KEY,
+  customer_id INTEGER NOT NULL,
+  FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+-- Cloud snapshot: current = rows where active_to IS NULL
 CREATE TABLE deployments (
-  deployment_id INTEGER PRIMARY KEY,
-  account_id    INTEGER NOT NULL,
-  model_raw     TEXT,          -- 'cloud','saas','hosted','server','onprem','on-prem','datacenter'
-  active_from   TEXT,          -- YYYY-MM-DD
-  active_to     TEXT,          -- NULL => current snapshot
+  account_id INTEGER NOT NULL,
+  active_from DATE NOT NULL,
+  active_to   DATE,                  -- NULL = current
+  provider    TEXT NOT NULL,         -- 'Cloud' (conservative rule: deployments only imply Cloud)
   FOREIGN KEY (account_id) REFERENCES accounts(account_id)
 );
 
+-- On-prem signal: historical sightings (opt-in)
 CREATE TABLE telemetry (
-  signal_id   INTEGER PRIMARY KEY,
-  account_id  INTEGER NOT NULL,
-  source      TEXT,            -- telemetry/support/license
-  signal_type TEXT,            -- heartbeat/ticket_env
-  value       TEXT,            -- on-prem context values (never cloud)
-  seen_at     TEXT,            -- YYYY-MM-DD
+  account_id INTEGER NOT NULL,
+  seen_at DATE NOT NULL,
+  source TEXT NOT NULL,              -- 'onprem' here
   FOREIGN KEY (account_id) REFERENCES accounts(account_id)
 );
 
--- Customers
-INSERT INTO customers VALUES (1,'Acme'),(2,'Globex'),(3,'Umbrella'),(4,'Initech'),(5,'Soylent');
+-- === Data ===
+INSERT INTO customers (customer_id, name) VALUES
+  (1,'Acme Corp'),
+  (2,'Bright Foods'),
+  (3,'Cloudy Labs'),
+  (4,'Delta Retail');
 
--- Accounts
-INSERT INTO accounts (account_id, customer_id) VALUES (10,1),(11,1),(20,2),(30,3),(40,4),(50,5);
+INSERT INTO accounts (account_id, customer_id) VALUES
+  (10,1), (11,1),  -- two accounts for customer 1
+  (20,2),
+  (30,3),
+  (40,4);
 
--- Deployments (current & historical)
--- C1: a10 current Cloud; a11 historical On-Prem (no current)
-INSERT INTO deployments VALUES (1000,10,'cloud','2024-01-01',NULL);
-INSERT INTO deployments VALUES (1100,11,'on-prem','2023-01-01','2023-12-31');
+-- Deployments (Cloud). NULL active_to = current.
+-- cust 1, acct 10: current Cloud
+INSERT INTO deployments VALUES (10,'2025-01-10',NULL,'Cloud');
 
--- C2: a20 current On-Prem
-INSERT INTO deployments VALUES (2000,20,'server','2022-05-01',NULL);
+-- cust 1, acct 11: past Cloud (ended) -> not current
+INSERT INTO deployments VALUES (11,'2023-01-01','2023-12-31','Cloud');
 
--- C3: a30 historical Cloud, no current
-INSERT INTO deployments VALUES (3000,30,'hosted','2022-02-01','2022-10-31');
+-- cust 2, acct 20: past Cloud (ended) -> not current
+INSERT INTO deployments VALUES (20,'2024-02-01','2024-12-31','Cloud');
 
--- C4: a40 current On-Prem
-INSERT INTO deployments VALUES (4000,40,'datacenter','2021-07-01',NULL);
+-- cust 3, acct 30: current Cloud
+INSERT INTO deployments VALUES (30,'2025-03-01',NULL,'Cloud');
 
--- C5: a50 historical On-Prem, no current
-INSERT INTO deployments VALUES (5000,50,'onprem','2020-03-01','2020-12-31');
+-- cust 4, acct 40: past Cloud (ended) -> not current
+INSERT INTO deployments VALUES (40,'2024-05-01','2024-10-31','Cloud');
 
--- Telemetry (on-prem only; presence implies on-prem; never cloud)
-INSERT INTO telemetry VALUES
- (1,11,'telemetry','heartbeat','datacenter','2025-03-10'),
- (2,30,'support','ticket_env','onprem','2025-02-01'),
- (3,50,'license','activation','on-prem','2025-04-15'),
- (4,20,'telemetry','heartbeat','server','2025-05-20');
+-- Telemetry (On-Prem)
+-- cust 1, acct 11: on-prem sighting -> makes customer 1 potentially Hybrid (has current Cloud on acct 10)
+INSERT INTO telemetry VALUES (11,'2024-05-01','onprem');
+
+-- cust 2, acct 20: on-prem only -> OnPrem
+INSERT INTO telemetry VALUES (20,'2025-03-01','onprem');
+
+-- cust 3, acct 30: no telemetry -> Cloud only
+-- cust 4, acct 40: no telemetry and no current -> None
+
+-- Optional helpers
+CREATE INDEX IF NOT EXISTS idx_deploy_current ON deployments(account_id, active_to);
+CREATE INDEX IF NOT EXISTS idx_tel_account ON telemetry(account_id, seen_at);
