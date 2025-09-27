@@ -1,11 +1,11 @@
 [
   {
-    "id": "deployment-distribution-v1",
-    "order": 1,
+    "id": "deploy-distribution",
     "title": "Deployment distribution by customer",
-    "description_file": "challenges/deployment-distribution-v1/description.md",
-    "seed": "challenges/deployment-distribution-v1/seed.sql",
-    "starter": "challenges/deployment-distribution-v1/starter.sql",
-    "grader": "challenges/deployment-distribution-v1/grader.js"
+    "order": 1,
+    "seed": "challenges/deploy-distribution/seed.sql",
+    "starter": "challenges/deploy-distribution/starter.sql",
+    "description_file": "challenges/deploy-distribution/description.md"
+    /* "grader": "challenges/deploy-distribution/grader.js"  <-- add later when ready */
   }
 ]
