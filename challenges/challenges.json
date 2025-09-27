@@ -6,8 +6,5 @@
     "seed": "challenges/deployment-distribution-v1/seed.sql",
     "starter": "challenges/deployment-distribution-v1/starter.sql",
     "description_file": "challenges/deployment-distribution-v1/description.md"
-    /* "grader": "challenges/deployment-distribution-v1/grader.js"  // only if you’ve added it */
   }
-
-  /* keep other challenges here as additional objects in the array */
 ]
