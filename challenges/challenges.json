@@ -6,6 +6,5 @@
     "seed": "challenges/deploy-distribution/seed.sql",
     "starter": "challenges/deploy-distribution/starter.sql",
     "description_file": "challenges/deploy-distribution/description.md"
-    /* "grader": "challenges/deploy-distribution/grader.js"  <-- add later when ready */
   }
 ]
