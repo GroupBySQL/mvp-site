@@ -1,19 +1,17 @@
-# Deployment distribution by customer
+# Challenge 1: Deployment distribution by customer
 
-**Goal:** “How are our customers deployed — Cloud, On-Prem, or Hybrid?”
+**Business question:** How many of our customers are Cloud, On-Prem, or Hybrid?
 
-**Assumptions (conservative)**
-- **Deployment** = current snapshot: use rows where `active_to IS NULL`; if multiple, keep the latest by `active_from`.
-- **Telemetry** = historical, on-prem only (opt-in). It never implies Cloud.
-- **Precedence:** Deployment > Telemetry.
-- Every **customer** has at least one deployment record.
+**Conservative rules**
+- **Deployment** = Cloud snapshot. Use rows where `active_to IS NULL`. If multiple, keep the latest by `active_from`.
+- **Telemetry** = On-prem historical sightings (opt-in). It never implies Cloud.
+- **Precedence** for final label (per customer):  
+  Any **Cloud** **and** any **On-Prem** ⇒ **Hybrid**; else **Cloud**; else **On-Prem**; else **None**.
+- Every customer has at least one deployment record (may be non-current).
 
 **Tasks**
-- **Part 1 — Audit:** Accounts with telemetry but **no current** deployment record.
-- **Part 2 — Per-account flags:** one row per account  
-  Columns: `account_id, customer_id, has_cloud_flag (0/1), has_onprem_flag (0/1), source_of_truth ('Deployment'|'Telemetry'|'None')`
-- **Part 3 — Customer roll-up:** one label per customer  
-  `deployment_model ∈ {Cloud, OnPrem, Hybrid, None}`  
-  Rule: Any Cloud **and** any On-Prem ⇒ `Hybrid`; else Cloud > On-Prem > None.
+1. **Part 1 — Audit:** accounts that have telemetry but **no current** deployment.
+2. **Part 2 — Flags:** per-account booleans: `has_cloud_flag`, `has_onprem_flag`, plus a `source_of_truth` note.
+3. **Part 3 — Roll-up:** one row per customer with final `deployment_model ∈ {Cloud, OnPrem, Hybrid, None}`.
 
-*Keep each solution tidy (≈≤20 lines). Order doesn’t matter for grading.*
+Keep each part tidy (~≤20 lines). Order of rows doesn’t matter when grading.
