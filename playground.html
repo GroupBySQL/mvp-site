@@ -21,7 +21,8 @@
       background:#fff; display:flex; justify-content:space-between; align-items:center; gap:12px
     }
     header h1{ margin:0; font-size:18px }
-    #status{ display:none } /* Keep for JS but hidden */
+    .subhelp{ color: var(--muted); font-size:12px; margin-top:2px; }
+    #status{ display:none }
 
     .hstack{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
     .pickerbar{
@@ -99,7 +100,20 @@
 
     /* Hidden until a challenge & (SQLite) grader is ready */
     .when-ready{ display:none; }
-    .subhelp{ color: var(--muted); font-size:12px; margin-top:2px; }
+
+    /* --- Dojo stages UI --- */
+    .progress { display:flex; gap:8px; margin:6px 0 12px; flex-wrap:wrap }
+    .pill-step { border:1px solid var(--border); border-radius:999px; padding:4px 10px; font-size:12px; background:#fff; color:#374151 }
+    .pill-step.done { background:#e9fce9; border-color:#bbf7d0; color:#166534; }
+    .pill-step.locked { background:#f3f4f6; color:#9ca3af; }
+
+    .stage { border:1px solid var(--border); border-radius:10px; margin:10px 0; overflow:hidden; background:#fff }
+    .stage.locked { opacity:.7 }
+    .stage-header { display:flex; justify-content:space-between; align-items:center; gap:10px; cursor:pointer; padding:10px 12px; background:#f8fafc; border-bottom:1px solid var(--border) }
+    .stage-title { font-weight:600 }
+    .stage-status { font-size:12px; color:#6b7280 }
+    .stage-body { display:none; padding:12px }
+    .stage.open .stage-body { display:block }
   </style>
 
   <!-- CodeMirror -->
@@ -110,33 +124,34 @@
 <header>
   <div>
     <h1>SQL Dojo</h1>
-    <div class="subhelp">Select one of the real-world style challenges to start.</div>
+    <div class="subhelp">Choose a mission, then write and check your SQL on the right.</div>
     <div id="status" class="muted"></div>
   </div>
 </header>
 
   <!-- Picker -->
-<div class="pickerbar">
-  <div class="hstack">
-    <label for="challenge" class="muted" style="font-size:13px;">Challenge</label>
-    <select id="challenge"></select>
+  <div class="pickerbar">
+    <div class="hstack">
+      <label for="challenge" class="muted" style="font-size:13px;">Challenge</label>
+      <select id="challenge"></select>
+    </div>
+    <div class="hstack">
+      <label for="editor-mode" class="muted" style="font-size:13px;">Language</label>
+      <select id="editor-mode">
+        <option value="sql">SQL (SQLite engine)</option>
+        <option value="mysql">MySQL (syntax only)</option>
+      </select>
+    </div>
   </div>
-  <div class="hstack">
-    <label for="editor-mode" class="muted" style="font-size:13px;">Language</label>
-    <select id="editor-mode">
-      <option value="sql">SQL (SQLite engine)</option>
-      <option value="mysql">MySQL (syntax only)</option>
-    </select>
-  </div>
-</div>
 
   <main>
     <!-- LEFT -->
     <section class="panel">
       <div class="pad">
         <h2 id="challenge-title">Workspace</h2>
+
         <div id="question" class="markdown muted">
-          <p>Select a challenge to see the details and schema.</p>
+          <p>Details and schema of the challenge will show here.</p>
         </div>
 
         <h3 style="margin-top:12px;">Schema</h3>
@@ -144,7 +159,7 @@
 
         <h3 style="margin-top:12px;">Validate your result</h3>
         <div class="muted" style="font-size:14px;">
-          Choose the task your query answers, then click <b>Check</b>. We’ll compare your result with the expected answer. (Appears after you load a challenge.)
+          Choose the task your query answers, then click <b>Check</b>. (Appears after you load a challenge.)
         </div>
 
         <div class="hstack" style="margin-top:6px">
@@ -207,7 +222,8 @@
       seedSQL: '',
       starterSQL: '',
       graderReady: false,
-      grader: null
+      grader: null,
+      currentDescHTML: ''   // for rebuilding staged UI after progress updates
     };
 
     // ----- Elements -----
@@ -317,6 +333,113 @@
       }catch(e){ els.schema.innerHTML = '<span class="warn">Error loading schema: '+e.message+'</span>'; }
     }
 
+    // ---------- Dojo Stages: progress + accordion ----------
+    function _progressKey(id){ return 'dojo_progress_' + id; }
+    function getProgress(chid){
+      try { return JSON.parse(localStorage.getItem(_progressKey(chid))) || {}; }
+      catch(_) { return {}; }
+    }
+    function setProgress(chid, key, val){
+      const p = getProgress(chid); p[key] = !!val;
+      localStorage.setItem(_progressKey(chid), JSON.stringify(p));
+    }
+    function allCoreStagesDone(chid){
+      const p = getProgress(chid);
+      return !!(p['1A'] && p['2'] && p['3']);
+    }
+    /**
+     * Build staged UI from sanitized HTML (marked+DOMPurify output).
+     * Expects H2s containing: "Stage 1", "Stage 2", "Stage 3", and "Brief".
+     */
+    function buildStageUI(challengeId, html){
+      if (!html){ els.question.innerHTML = '<p>No description provided.</p>'; return; }
+
+      // Split by H2 sections
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      const children = Array.from(tmp.children);
+      const sections = [];
+      let cur = null;
+      children.forEach(node => {
+        if (node.tagName && node.tagName.toLowerCase()==='h2'){
+          if (cur) sections.push(cur);
+          cur = { title: node.textContent.trim(), nodes: [] };
+        } else if (cur){
+          cur.nodes.push(node.outerHTML || node.textContent);
+        }
+      });
+      if (cur) sections.push(cur);
+
+      if (!sections.length){
+        els.question.innerHTML = html;
+        return;
+      }
+
+      const partFor = (t) => {
+        const s = t.toLowerCase();
+        if (s.includes('stage 1')) return '1A';
+        if (s.includes('stage 2')) return '2';
+        if (s.includes('stage 3')) return '3';
+        if (s.includes('brief'))   return 'brief';
+        return '';
+      };
+
+      const prog = getProgress(challengeId);
+      const coreDone = allCoreStagesDone(challengeId);
+
+      // Progress pills
+      let out = '<div class="progress">';
+      sections.forEach(sec => {
+        const pid = partFor(sec.title);
+        const done = pid === 'brief' ? (coreDone && prog['brief']) : !!prog[pid];
+        const locked = (pid === 'brief' && !coreDone);
+        const cls = done ? 'pill-step done' : locked ? 'pill-step locked' : 'pill-step';
+        out += `<div class="${cls}">${sec.title.replace(/^##?\\s*/,'')}</div>`;
+      });
+      out += '</div>';
+
+      // Stage panels
+      sections.forEach((sec, idx) => {
+        const pid = partFor(sec.title);
+        const locked = (pid === 'brief' && !coreDone);
+        const done = pid === 'brief' ? (coreDone && prog['brief']) : !!prog[pid];
+        const statusText = locked ? 'Unlocks after all 3 stages' : (done ? '✓ Complete' : 'Click to expand');
+
+        out += `
+          <div class="stage ${idx===0 ? 'open' : ''} ${locked ? 'locked' : ''}" data-part="${pid}">
+            <div class="stage-header">
+              <div class="stage-title">${sec.title}</div>
+              <div class="stage-status">${statusText}</div>
+            </div>
+            <div class="stage-body markdown">
+              ${sec.nodes.join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      els.question.innerHTML = out;
+
+      // Toggle + wire which-check to selected stage
+      els.question.querySelectorAll('.stage-header').forEach(h => {
+        h.addEventListener('click', () => {
+          const stage = h.closest('.stage');
+          if (stage.classList.contains('locked')) return;
+          els.question.querySelectorAll('.stage').forEach(s => s.classList.remove('open'));
+          stage.classList.add('open');
+
+          const part = stage.dataset.part;
+          if (part && part !== 'brief'){
+            els.whichCheck.value = part;
+          }
+        });
+      });
+
+      // Default which-check to Stage 1
+      const first = els.question.querySelector('.stage[data-part="1A"]');
+      if (first){ els.whichCheck.value = '1A'; }
+    }
+
     // ----- Boot -----
     async function boot(){
       try{
@@ -367,7 +490,7 @@
 
     function resetToNeutral(){
       APP.current = null; APP.seedSQL = APP.starterSQL = '';
-      APP.grader = null; APP.graderReady = false; db = null;
+      APP.grader = null; APP.graderReady = false; db = null; APP.currentDescHTML = '';
       setControlsEnabled(false);
       els.challengeTitle.textContent = 'Workspace';
       els.question.innerHTML = '<p>Details and schema of the challenge will show here.</p>';
@@ -415,9 +538,10 @@
         const label = (meta.order ? `Challenge ${meta.order}: ${meta.title}` : (meta.title || 'Workspace'));
         els.challengeTitle.textContent = label;
 
-        // Render markdown safely
+        // Render markdown safely → build staged UI
         const html = DOMPurify.sanitize(marked.parse(desc || 'No description provided.'));
-        els.question.innerHTML = html;
+        APP.currentDescHTML = html;
+        buildStageUI(APP.current.id, APP.currentDescHTML);
 
         // Always show a clean starter (no answers)
         setSQL(DEFAULT_STARTER);
@@ -518,6 +642,12 @@
           els.miniStatus.textContent = r.status || '✅ Passed!';
           els.miniStatus.className = 'ok';
           els.gradeDiff.innerHTML = r.diffHTML || '';
+
+          // progress
+          if (APP.current){
+            setProgress(APP.current.id, partId, true);
+            buildStageUI(APP.current.id, APP.currentDescHTML);
+          }
         } else {
           els.miniStatus.textContent = (r && r.status) ? r.status : '❌ Not correct.';
           els.miniStatus.className = 'warn';
@@ -548,6 +678,13 @@
           els.gradeStatus.textContent = r.status || '✅ Correct!';
           els.gradeStatus.className = 'ok';
           els.gradeDiff.innerHTML = r.diffHTML || '';
+
+          // mark final + unlock Brief
+          if (APP.current){
+            setProgress(APP.current.id, '3', true);
+            setProgress(APP.current.id, 'brief', true);
+            buildStageUI(APP.current.id, APP.currentDescHTML);
+          }
         } else {
           els.gradeStatus.textContent = (r && r.status) ? r.status : '❌ Not quite — see differences below.';
           els.gradeStatus.className = 'warn';
