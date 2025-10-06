@@ -5,6 +5,7 @@
     "title": "Deployment distribution by customer",
     "seed": "challenges/deployment-distribution-v1/seed.sql",
     "starter": "challenges/deployment-distribution-v1/starter.sql",
-    "description_file": "challenges/deployment-distribution-v1/description.md"
+    "description_file": "challenges/deployment-distribution-v1/description.md",
+    "grader": "challenges/deployment-distribution-v1/grader.js"
   }
 ]
