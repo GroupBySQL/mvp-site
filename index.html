@@ -2,103 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Group by SQL — Real-world SQL practice</title>
+  <title>GroupBySQL — Real-world SQL practice</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Practice real-world SQL with scenario-based challenges, multi-step tasks, and clear checks. MVP live — runs in your browser.">
-  <meta property="og:title" content="Group by SQL — Real-world SQL practice">
-  <meta property="og:description" content="Scenario-based SQL challenges. Multi-step, realistic schemas, and friendly checks.">
+  <meta name="description" content="GroupBySQL helps analysts practice real-world SQL through short, scenario-based missions in the SQL Dojo.">
+  <meta property="og:title" content="GroupBySQL — Real-world SQL practice">
+  <meta property="og:description" content="Short, scenario-based missions in the SQL Dojo. Write queries, check results, learn fast.">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://groupbysql.com/">
-
+  <meta property="og:url" content="https://www.groupbyql.com/">
   <style>
     :root{
-      --bg:#0f172a;         /* slate-900 */
-      --card:#0b1224;       /* deep slate */
-      --faint:#111827;      /* slate-900 alt */
-      --muted:#94a3b8;      /* slate-400 */
-      --text:#e5e7eb;       /* slate-200 */
-      --hi:#ffffff;
-      --accent:#22c55e;     /* green-500 */
-      --accent-d:#16a34a;
-      --border:rgba(255,255,255,.08);
-      --chip:#1f2937;
-      --shadow: 0 10px 30px rgba(2,6,23,.35);
-      --maxw: 1080px;
-      --radius: 16px;
+      --bg:#0f172a; --card:#0b1224; --muted:#94a3b8; --text:#e5e7eb; --accent:#22c55e; --accent-d:#16a34a; --border:rgba(255,255,255,.08);
+      --maxw:1080px; --r:16px;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{box-sizing:border-box} html,body{height:100%}
     body{
-      margin:0; color:var(--text); background:
-        radial-gradient(1200px 600px at 10% -10%, #1f2937 0%, transparent 60%),
-        radial-gradient(900px 500px at 100% 0%, #0b1224 0%, transparent 55%),
-        var(--bg);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, Apple Color Emoji, Segoe UI Emoji;
-      letter-spacing:.1px;
+      margin:0; color:var(--text);
+      background:radial-gradient(900px 500px at 100% 0%, #0b1224 0%, transparent 55%), var(--bg);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
-    a{color:inherit}
+    a{color:inherit; text-decoration:none}
     .container{max-width:var(--maxw); margin:0 auto; padding:24px}
-    header{display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0}
-    .brand{display:flex; align-items:center; gap:12px; font-weight:800; font-size:20px; letter-spacing:.2px}
-    .brand .dot{width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 20px rgba(34,197,94,.7)}
-    nav a{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.02)}
-    nav a:hover{background:rgba(255,255,255,.06)}
-    .cta-primary{background:var(--accent); color:#08140b; border-color:transparent; font-weight:700}
+    header{display:flex; justify-content:space-between; align-items:center; gap:12px}
+    .brand{display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px}
+    .dot{width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 16px rgba(34,197,94,.7)}
+    nav a{display:inline-flex; gap:8px; padding:10px 14px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,.03); margin-left:8px}
+    nav a:hover{background:rgba(255,255,255,.07)}
+    .cta-primary{background:var(--accent); color:#05210d; border-color:transparent; font-weight:700}
     .cta-primary:hover{background:var(--accent-d)}
-    .hero{
-      margin-top:32px;
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      box-shadow: var(--shadow);
-      padding:32px;
-    }
-    .badge{
-      display:inline-block; padding:6px 12px; border:1px solid var(--border); border-radius:999px;
-      background:rgba(255,255,255,.04); color:var(--muted); font-size:12px; letter-spacing:.3px
-    }
-    h1{margin:10px 0 6px; font-size:40px; line-height:1.1; letter-spacing:.2px}
+    .pill{background:rgba(255,255,255,.05)}
+    .hero{margin-top:28px; padding:28px; border:1px solid var(--border); border-radius:var(--r); background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02))}
+    .badge{display:inline-block; padding:6px 12px; border:1px solid var(--border); border-radius:999px; color:var(--muted); font-size:12px}
+    h1{margin:8px 0 6px; font-size:40px; line-height:1.1}
     .sub{color:var(--muted); font-size:18px; line-height:1.6; max-width:780px}
-    .hero-actions{display:flex; gap:12px; flex-wrap:wrap; margin-top:20px}
-    .mini{color:var(--muted); font-size:13px}
-
-    .grid{display:grid; gap:16px; margin-top:28px}
-    @media (min-width: 860px){ .grid{grid-template-columns: 1.1fr .9fr} }
-
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      padding:22px;
-    }
-    .card h3{margin:0 0 8px; font-size:18px}
-    .list{margin:10px 0 0 0; padding:0 0 0 20px; color:var(--text)}
+    .hero-actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:16px}
+    .grid{display:grid; gap:16px; margin-top:22px}
+    @media (min-width:860px){ .grid{grid-template-columns: 1.1fr .9fr} }
+    .card{border:1px solid var(--border); border-radius:var(--r); padding:20px; background:rgba(255,255,255,.02)}
+    .list{margin:10px 0 0 0; padding-left:20px}
     .list li{margin:10px 0}
-    .muted{color:var(--muted)}
-    .pill{display:inline-block; padding:5px 10px; background:#0f172a; border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted)}
-    .code{
-      background:#0b1224; border:1px solid var(--border); border-radius:12px; padding:14px; overflow:auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; color:#e2e8f0
-    }
-    .features{display:grid; gap:12px; margin-top:8px}
-    @media (min-width: 680px){ .features{grid-template-columns: repeat(3, 1fr)} }
-    .feature{
-      background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:14px; padding:16px
-    }
-    .feature b{display:block; margin-bottom:6px}
-    footer{
-      margin:36px auto 40px; max-width:var(--maxw); color:var(--muted); font-size:14px;
-      border-top:1px solid var(--border); padding:20px 24px 0;
-      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap
-    }
-    .link{color:#c7d2fe} /* faint indigo for links */
+    .features{display:grid; gap:12px; margin-top:10px}
+    @media (min-width:680px){ .features{grid-template-columns:repeat(3,1fr)} }
+    .feature{border:1px solid var(--border); border-radius:14px; padding:14px; background:rgba(255,255,255,.02)}
+    .code{background:#0b1224; border:1px solid var(--border); border-radius:12px; padding:12px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:13px; color:#e2e8f0}
+    footer{max-width:var(--maxw); margin:36px auto 40px; color:var(--muted); font-size:14px; border-top:1px solid var(--border); padding:20px 24px 0; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap}
+    .link{color:#c7d2fe}
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div class="brand"><span class="dot"></span>Group by SQL</div>
+      <div class="brand"><span class="dot"></span>GroupBySQL</div>
       <nav>
-        <a class="cta-primary" href="/playground.html">Open Playground →</a>
+        <a class="cta-primary" href="/playground.html">Open SQL Dojo →</a>
         <a href="https://github.com/GroupBySQL/mvp-site" target="_blank" rel="noopener">GitHub repo</a>
       </nav>
     </header>
@@ -107,14 +62,13 @@
       <span class="badge">MVP • live</span>
       <h1>Practice real-world SQL — not puzzle tricks.</h1>
       <p class="sub">
-        Scenario-based challenges with realistic schemas and multi-step tasks. Write queries, check answers that
-        focus on correctness and habits, and learn <em>why</em> a solution works.
-        Everything runs in your browser (SQLite engine; MySQL highlighting).
+        Short, scenario-based missions in the <b>SQL Dojo</b>. Write queries, run friendly checks, and learn
+        <em>why</em> a solution works. Everything runs in your browser (SQLite engine; MySQL highlighting).
       </p>
       <div class="hero-actions">
-        <a class="cta-primary" href="/playground.html">Start practicing</a>
+        <a class="cta-primary" href="/playground.html">Enter SQL Dojo</a>
         <a class="pill" href="https://github.com/GroupBySQL/mvp-site" target="_blank" rel="noopener">Star on GitHub</a>
-        <span class="mini">No sign-up. Private by default.</span>
+        <span class="sub" style="font-size:13px">No sign-up. Private by default.</span>
       </div>
 
       <div class="grid">
@@ -122,67 +76,34 @@
           <h3>What you’ll get</h3>
           <ul class="list">
             <li>🧩 <b>Scenario-based challenges</b> — multi-step, not single-query riddles.</li>
-            <li>✅ <b>Friendly checks</b> — compare your result to expected, not just “passes”.</li>
+            <li>✅ <b>Friendly checks</b> — compare your result with the expected, not just “passes”.</li>
             <li>🗺️ <b>Schema explorer</b> — browse tables, keys, and sample rows.</li>
             <li>🛠️ <b>Practical techniques</b> — window functions, CTEs, time windows & joins.</li>
           </ul>
         </div>
-
         <div class="card">
-          <h3>How it works</h3>
+          <h3>How SQL Dojo works</h3>
           <ol class="list">
-            <li><b>Pick a challenge</b> from the dropdown (e.g., “Deployment distribution by customer”).</li>
+            <li><b>Pick a challenge</b> (e.g., Deployment distribution by customer).</li>
             <li><b>Read the brief</b> on the left; write SQL on the right (run anytime).</li>
-            <li><b>Check</b> a part or the final answer to see where you’re off.</li>
+            <li><b>Check</b> a stage or the final answer to see where you’re off.</li>
           </ol>
-          <p class="muted" style="margin-top:10px">Tip: you can explore with <code class="code">SELECT * FROM table LIMIT 5;</code></p>
+          <p style="color:#94a3b8;margin-top:10px">Tip: explore data with <code class="code">SELECT * FROM table LIMIT 5;</code></p>
         </div>
       </div>
 
       <div class="features">
-        <div class="feature">
-          <b>Real data shape</b>
-          Nulls, overlapping signals, late-arriving facts — the stuff you see at work.
-        </div>
-        <div class="feature">
-          <b>Step-by-step grading</b>
-          Check your CTEs/parts before the final roll-up to debug your logic.
-        </div>
-        <div class="feature">
-          <b>Browser-native</b>
-          SQLite runs locally; MySQL syntax highlighting supported. Fast and private.
-        </div>
-      </div>
-
-      <div class="card" style="margin-top:16px">
-        <h3>Sample challenge</h3>
-        <p class="muted" style="margin:6px 0 10px">“How many of our customers are Cloud, On-Prem, or Hybrid?” (conservative rules)</p>
-        <pre class="code">-- Part 2 (per-account flags)
-WITH latest_deploy AS (
-  SELECT account_id, MAX(active_from) AS active_from
-  FROM deployments
-  WHERE active_to IS NULL
-  GROUP BY account_id
-)
-SELECT a.account_id,
-       CASE WHEN d.provider IS NOT NULL THEN 1 ELSE 0 END AS has_cloud_flag,
-       CASE WHEN t.source = 'onprem' THEN 1 ELSE 0 END AS has_onprem_flag
-FROM accounts a
-LEFT JOIN latest_deploy ld USING (account_id)
-LEFT JOIN deployments d USING (account_id, active_from)
-LEFT JOIN telemetry t ON t.account_id = a.account_id;</pre>
-        <div class="hero-actions" style="margin-top:10px">
-          <a class="cta-primary" href="/playground.html">Try this in the Playground</a>
-          <span class="mini">Includes parts & final answer checks.</span>
-        </div>
+        <div class="feature"><b>Real data shape</b> Nulls, overlaps, late facts — what you see at work.</div>
+        <div class="feature"><b>Step-by-step grading</b> Check parts before the roll-up to debug logic.</div>
+        <div class="feature"><b>Browser-native</b> SQLite runs locally; MySQL syntax highlighting supported.</div>
       </div>
     </section>
   </div>
 
   <footer>
-    <div>© 2025 Group by SQL</div>
+    <div>© 2025 GroupBySQL</div>
     <div>
-      <a class="link" href="/playground.html">Playground</a> ·
+      <a class="link" href="/playground.html">SQL Dojo</a> ·
       <a class="link" href="https://github.com/GroupBySQL/mvp-site" target="_blank" rel="noopener">GitHub</a>
     </div>
   </footer>
