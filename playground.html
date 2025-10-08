@@ -234,44 +234,62 @@
 
     // Build collapsible accordions from markdown headings
     function buildAccordions(){
-      const host = els.question;
-      const kids = Array.from(host.childNodes);
-      const container = document.createElement('div');
-      const headerRe = /^(stage\s*\d+|bonus\s*stage|brief your executive)/i;
-      let current = null;
+    const host = els.question;
+    const nodes = Array.from(host.childNodes);
+    const container = document.createElement('div');
 
-      function flush(){ if (current){ container.appendChild(current.wrapper); current=null; } }
+    const isHeading = n => n.nodeType === 1 && /^H[1-4]$/.test(n.tagName);
+    const isStageTitle = txt => {
+      const s = txt.trim().toLowerCase();
+      return /^stage\s*\d+/.test(s)
+          || /^bonus\s*stage/.test(s)
+          || /^brief\s+your\s+executive/.test(s);
+    };
 
-      for (const node of kids){
-        if (node.nodeType === 1 && node.tagName === 'H3' && headerRe.test(node.textContent.trim())){
-          flush();
-          const title = node.textContent.trim();
-          const det = document.createElement('details');
-          det.className = 'acc';
-          if (/stage\s*1/i.test(title)) det.open = true;
-          if (/brief your executive/i.test(title)) det.classList.add('brief','locked');
-          const sum = document.createElement('summary');
-          sum.innerHTML = `${title} <span class="hint">${/brief your executive/i.test(title) ? 'Unlocks after Stage 3' : 'Click to expand'}</span>`;
-          det.appendChild(sum);
-          const body = document.createElement('div');
-          det.appendChild(body);
-          current = { wrapper:det, body };
-          continue; // do not copy the H3 itself
-        }
-        if (current) current.body.appendChild(node.cloneNode(true));
-        else container.appendChild(node.cloneNode(true));
-      }
-      flush();
-      host.innerHTML = ''; host.appendChild(container);
+    let current = null;
+    let foundAny = false;
 
-      // Prevent opening locked brief
-      host.addEventListener('toggle', (e)=>{
-        const d = e.target;
-        if (d.tagName === 'DETAILS' && d.classList.contains('locked') && d.open){
-          d.open = false;
-        }
-      }, true);
+    function startSection(title){
+      const det = document.createElement('details');
+      det.className = 'acc';
+      if (/^stage\s*1/i.test(title)) det.open = true;             // Stage 1 starts open
+      if (/brief your executive/i.test(title)) det.classList.add('brief','locked'); // Brief locked until Stage 3
+
+      const sum = document.createElement('summary');
+      sum.innerHTML = `${title} <span class="hint">${/brief your executive/i.test(title) ? 'Unlocks after Stage 3' : 'Click to expand'}</span>`;
+      det.appendChild(sum);
+
+      const body = document.createElement('div');
+      det.appendChild(body);
+
+      current = { wrapper: det, body };
+      foundAny = true;
     }
+    function flush(){ if (current){ container.appendChild(current.wrapper); current = null; } }
+
+    for (const node of nodes){
+      if (isHeading(node) && isStageTitle(node.textContent)){
+        flush();
+        startSection(node.textContent);
+        // skip copying the heading itself
+        continue;
+      }
+      if (current) current.body.appendChild(node.cloneNode(true));
+      else container.appendChild(node.cloneNode(true));
+    }
+    flush();
+
+    if (foundAny){
+      host.innerHTML = '';
+      host.appendChild(container);
+
+      // Prevent expanding locked "Brief" until unlocked
+      host.addEventListener('click', (e)=>{
+        const details = e.target.closest('details.acc.brief.locked');
+        if (details && e.target.closest('summary')) e.preventDefault();
+      });
+    }
+  }
 
     function unlockBrief(){
       const brief = els.question.querySelector('details.acc.brief');
