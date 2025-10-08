@@ -66,6 +66,35 @@
     .markdown details.acc > summary::-webkit-details-marker{ display:none }
     .markdown details.acc .hint{ color:var(--muted); font-size:12px }
     .markdown details.acc.locked > summary{ opacity:.6; cursor:not-allowed }
+  :root{
+  --left-body: 14px;      /* left panel base text */
+  --left-heading: 15px;   /* left panel H2 / summaries */
+  --schema-font: 12px;    /* ASCII schema block */
+  --result-text: 13px;    /* results table cells */
+  --result-th: 12px;      /* results table headers */
+  --cell-pad-y: 4px;      /* table cell vertical padding */
+  --cell-pad-x: 6px;      /* table cell horizontal padding */
+}
+
+/* Left panel (first panel in the grid) */
+main > section.panel:first-child{ font-size: var(--left-body); }
+main > section.panel:first-child h2{ font-size: var(--left-heading); }
+main > section.panel:first-child .acc summary{ font-size: var(--left-heading); }
+main > section.panel:first-child pre.ascii{ font-size: var(--schema-font); }
+
+/* Results table on the right */
+#results{ font-size: var(--result-text); }
+#results .table-wrap table{ font-size: inherit; }
+#results th{ font-size: var(--result-th); }
+#results th, #results td{ padding: var(--cell-pad-y) var(--cell-pad-x); }
+#results .col-idx{ width: 44px; } /* slimmer row index column */
+  
+  
+  
+  
+  
+  
+  
   </style>
 
   <!-- CodeMirror -->
@@ -329,11 +358,7 @@
       setControlsEnabled(false);
       els.challengeTitle.textContent='Workspace';
       els.question.innerHTML='<p>Select a challenge to see the details and schema.</p>';
-      setSQL(`-- You can run any SELECTs you need to explore
--- e.g.
--- SELECT * FROM some_table LIMIT 5;
-
--- Write your solution below:
+      setSQL(`-- Write your SQL solution below:
 `);
       els.schema.textContent='—'; els.results.textContent='Test results will show here.'; els.gradeDiff.innerHTML=''; els.gradeStatus.textContent=''; els.runInfo.textContent='';
       els.stageSelect.selectedIndex=0;
