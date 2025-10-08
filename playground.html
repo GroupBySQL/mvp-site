@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SQL Dojo</title>
+  <title>SQL Dojo · GroupBySQL</title>
   <style>
     :root{
       --border:#e5e7eb; --muted:#6b7280;
@@ -12,17 +12,19 @@
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
-    body{ margin:0; background:var(--bg); font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:#111 }
-    header{ padding:12px 20px; border-bottom:1px solid var(--border); background:#fff; display:flex; justify-content:space-between; align-items:center; gap:12px }
+    body{ margin:0; background:var(--bg);
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:#111 }
+    header{ padding:12px 20px; border-bottom:1px solid var(--border);
+      background:#fff; display:flex; justify-content:space-between; align-items:center; gap:12px }
     header h1{ margin:0; font-size:18px }
     .subhelp{ color: var(--muted); font-size:12px; margin-top:2px; }
-    #status{ display:none } /* keep for JS but hidden */
+    #status{ display:none } /* keep for JS */
 
     .hstack{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
-    .pickerbar{ background:#fff; border-bottom:1px solid var(--border); padding:10px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap }
-    .help{ color:#374151; font-size:13px }
+    .pickerbar{ background:#fff; border-bottom:1px solid var(--border);
+      padding:10px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap }
 
-    main{ max-width:1400px; margin:0 auto; display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:16px; padding:16px }
+    main{ max-width:1400px; margin:0 auto; display:grid; grid-template-columns: 1fr 1fr; gap:16px; padding:16px }
     @media (max-width: 900px){ main{ grid-template-columns:1fr } }
 
     .panel{ border:1px solid var(--border); border-radius:12px; background:#fff; min-width:0; }
@@ -40,21 +42,24 @@
     button.success:disabled{ background:#e5e7eb; border-color:#e5e7eb; color:#9ca3af }
 
     .toolbar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px }
+    .toolbar .spacer{ flex:1 }
 
-    .CodeMirror{ border:1px solid var(--border); border-radius:10px; height:clamp(220px, 45vh, 520px); background:#fff; width:100%; }
-    textarea{ width:100%; min-height:220px; }
+    .CodeMirror{ border:1px solid var(--border); border-radius:10px; height:clamp(220px, 45vh, 520px); background:#fff; width:100% }
+    textarea{ width:100%; min-height:220px }
 
-    #results{ margin-top:12px; border:1px solid var(--border); border-radius:10px; padding:10px; min-height:52px; max-height:clamp(160px, 38vh, 460px); overflow:auto; background:#fff; }
+    #results{ margin-top:12px; border:1px solid var(--border); border-radius:10px;
+      padding:10px; min-height:52px; max-height:clamp(160px, 38vh, 460px); overflow:auto; background:#fff }
     #grade-diff{ margin-top:10px; overflow:auto }
     .table-wrap{ width:100%; overflow:auto }
-    table{ border-collapse:collapse; width:100%; min-width:600px; }
+    table{ border-collapse:collapse; width:100%; min-width:600px }
     th,td{ border:1px solid var(--border); padding:6px 8px; text-align:left; vertical-align:top; overflow-wrap:anywhere }
-    th{ background:#f9fafb; position:sticky; top:0; }
+    th{ background:#f9fafb; position:sticky; top:0 }
     td.col-idx, th.col-idx{ width:56px; text-align:right; color:#6b7280; background:#fafafa; position:sticky; left:0 }
     tr:nth-child(even) td{ background:#fcfcfc }
-    @media (max-width: 700px){ th{ position:static } td.col-idx, th.col-idx{ position:static } table{ min-width:480px } }
+    @media (max-width:700px){ th,td.col-idx,th.col-idx{ position:static } table{ min-width:480px } }
 
-    pre.ascii{ background:#f9fafb; border:1px solid var(--border); border-radius:10px; padding:10px; overflow:auto; margin:8px 0; font-size:13px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height:1.35; }
+    pre.ascii{ background:#f9fafb; border:1px solid var(--border); border-radius:10px;
+      padding:10px; overflow:auto; margin:8px 0; font-size:13px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height:1.35 }
 
     /* Markdown description styles */
     .markdown :is(h1,h2,h3){ margin:10px 0 6px; font-weight:700 }
@@ -67,22 +72,15 @@
     .markdown code{ background:#f3f4f6; border:1px solid var(--border); border-radius:6px; padding:0 4px }
     .markdown pre code{ display:block; padding:10px; border-radius:10px }
 
-    /* Stage progress + accordion */
-    .progress{ display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 10px }
-    .pill-step{ font-size:12px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:#f9fafb; color:#374151 }
-    .pill-step.done{ background:#ecfdf5; border-color:#bbf7d0; color:#065f46 }
-    .pill-step.locked{ background:#f3f4f6; color:#9ca3af; border-style:dashed }
+    /* Hide the (non-clickable) stage pills row if present in description */
+    .markdown .stage-pills{ display:none }
 
-    .stage{ border:1px solid var(--border); border-radius:10px; margin:10px 0; overflow:hidden }
-    .stage.locked{ opacity:.8 }
-    .stage-header{ display:flex; justify-content:space-between; align-items:center; gap:12px; cursor:pointer; padding:12px 14px; background:#f9fafb }
-    .stage-title{ font-weight:600 }
-    .stage-status{ font-size:12px; color:#6b7280 }
-    .stage-body{ display:none; padding:12px 14px }
-    .stage.open .stage-body{ display:block }
+    /* More spacing between schema tables */
+    .schema-block{ margin-bottom:18px }
+    .schema-block:last-child{ margin-bottom:0 }
 
-    /* Hidden until a challenge & (SQLite) grader is ready */
-    .when-ready{ display:none; }
+    /* Hide old left-side mini-check row (we moved selection next to Submit) */
+    .left-check-row{ display:none }
   </style>
 
   <!-- CodeMirror -->
@@ -90,13 +88,13 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/neo.min.css">
 </head>
 <body>
-<header>
-  <div>
-    <h1>SQL Dojo</h1>
-    <div class="subhelp">Choose a mission, then write and check your SQL on the right.</div>
-    <div id="status" class="muted"></div>
-  </div>
-</header>
+  <header>
+    <div>
+      <h1>SQL Dojo</h1>
+      <div class="subhelp">Select one of the real-world style challenges to start.</div>
+      <div id="status" class="muted"></div>
+    </div>
+  </header>
 
   <!-- Picker -->
   <div class="pickerbar">
@@ -114,21 +112,26 @@
   </div>
 
   <main>
-    <!-- LEFT: Stages accordion will render here -->
+    <!-- LEFT -->
     <section class="panel">
       <div class="pad">
         <h2 id="challenge-title">Workspace</h2>
-        <div id="question" class="markdown muted"><p>Details and schema of the challenge will show here.</p></div>
+        <div id="question" class="markdown muted">
+          <p>Select a challenge to see the details and schema.</p>
+        </div>
 
         <h3 style="margin-top:12px;">Schema</h3>
         <div id="schema" class="muted">—</div>
+
+        <!-- (old validation block removed from here) -->
       </div>
     </section>
 
-    <!-- RIGHT: editor + run/results + stage check controls -->
+    <!-- RIGHT -->
     <section class="panel">
       <div class="pad">
         <h2>Editor</h2>
+        <!-- single editor only -->
         <textarea id="editor">-- Pick a challenge to start your query here.</textarea>
 
         <div class="toolbar">
@@ -136,15 +139,16 @@
           <span class="muted" style="font-size:12px;">Ctrl/⌘+Enter</span>
           <button id="reset" disabled>Reset DB</button>
 
-          <!-- Stage check controls -->
-          <span class="muted when-ready" style="font-size:12px;">Stage to check:</span>
-          <select id="which-check" class="when-ready" disabled>
-            <option value="1A">Stage 1 — Signal Check</option>
-            <option value="2">Stage 2 — Source Map</option>
-            <option value="3">Stage 3 — Customer Roll-Up</option>
+          <span class="spacer"></span>
+
+          <!-- NEW: which stage to grade, right next to Submit -->
+          <label for="stage-select" class="muted" style="font-size:12px;">Grade:</label>
+          <select id="stage-select" disabled title="Choose stage to check">
+            <option value="1">Stage 1</option>
+            <option value="2">Stage 2</option>
+            <option value="3">Stage 3</option>
+            <option value="bonus">Bonus</option>
           </select>
-          <button id="mini-check" class="when-ready" disabled>Check</button>
-          <span id="mini-status" class="muted when-ready" style="min-width:160px;"></span>
 
           <button id="check" class="success" disabled>Submit (Grade)</button>
           <span id="run-info" class="muted"></span>
@@ -166,36 +170,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
   <script>
-    // -------- Helpers / state --------
+    /* ----------------- helpers & state ----------------- */
     const bust = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + Date.now();
 
-    // Accept SELECT or WITH (after stripping comments/whitespace)
-    function isSelectLike(sql){
-      const stripped = sql
-        .replace(/\/\*[\s\S]*?\*\//g, '')   // block comments
-        .replace(/^\s*--.*$/gm, '')         // line comments
-        .trim()
-        .toLowerCase();
-      return stripped.startsWith('select') || stripped.startsWith('with');
-    }
-
-    // Editor starter (keeps answers out)
     const DEFAULT_STARTER = `-- You can run any SELECTs you need to explore
--- e.g. SELECT * FROM some_table LIMIT 5;
+-- e.g.
+-- SELECT * FROM some_table LIMIT 5;
+
 -- Write your solution below:
 `;
 
     let SQL, db, cm = null;
-    const APP = {
-      challenges: [],
-      current: null,
-      seedSQL: '',
-      graderReady: false,
-      grader: null,
-      currentDescHTML: ''
-    };
+    const APP = { challenges: [], current: null, seedSQL:'', graderReady:false, grader:null };
 
-    // -------- Elements --------
+    /* ----------------- elements ----------------- */
     const els = {
       status: document.getElementById('status'),
       challengeSelect: document.getElementById('challenge'),
@@ -211,30 +199,27 @@
       gradeStatus: document.getElementById('grade-status'),
       gradeDiff: document.getElementById('grade-diff'),
       results: document.getElementById('results'),
-      whichCheck: document.getElementById('which-check'),
-      miniCheckBtn: document.getElementById('mini-check'),
-      miniStatus: document.getElementById('mini-status'),
+      stageSelect: document.getElementById('stage-select'),
       dialectNote: document.getElementById('dialect-note')
     };
 
-    // -------- UI helpers --------
-    function sqliteModeOn(){ return !els.modeSelect || els.modeSelect.value === 'sql'; }
-    function updateDialectNote(){ els.dialectNote.textContent = sqliteModeOn() ? '' : 'Checks run on SQLite. MySQL mode changes highlighting only.'; }
-    function toggleCheckRow(canShow){ document.querySelectorAll('.when-ready').forEach(el => el.style.display = (canShow ? '' : 'none')); }
+    /* ----------------- UI helpers ----------------- */
+    const sqliteModeOn = () => !els.modeSelect || els.modeSelect.value === 'sql';
+    function updateDialectNote(){
+      els.dialectNote.textContent = sqliteModeOn() ? '' : 'Checks run on SQLite. MySQL mode changes highlighting only.';
+    }
     function setControlsEnabled(on){
-      els.run.disabled = !on; els.reset.disabled = !on;
-      const sqliteOnly = sqliteModeOn();
-      const canCheck = on && APP.graderReady && sqliteOnly;
-      els.check.disabled = !canCheck; els.miniCheckBtn.disabled = !canCheck; els.whichCheck.disabled = !canCheck;
-      toggleCheckRow(canCheck);
-      els.miniStatus.textContent = (on && APP.graderReady && !sqliteOnly) ? 'Checks are SQLite-only. Switch to SQL to enable.' : '';
-      els.miniStatus.className = 'muted';
+      els.run.disabled = !on;
+      els.reset.disabled = !on;
+      const canCheck = on && APP.graderReady && sqliteModeOn();
+      els.check.disabled = !canCheck;
+      els.stageSelect.disabled = !canCheck;
       updateDialectNote();
     }
-    function getSQL(){ return cm ? cm.getValue() : els.editorTA.value; }
-    function setSQL(s){ if (cm) cm.setValue(s); else els.editorTA.value = s; }
+    const getSQL = () => (cm ? cm.getValue() : els.editorTA.value);
+    const setSQL = (s) => (cm ? cm.setValue(s) : (els.editorTA.value = s));
 
-    // -------- Render schema/table --------
+    /* ----------------- renderers ----------------- */
     function tableHTML(result){
       if (!result || !result.columns) return '<span class="muted">No rows.</span>';
       const { columns, values } = result;
@@ -282,86 +267,7 @@
       }catch(e){ els.schema.innerHTML = '<span class="warn">Error loading schema: '+e.message+'</span>'; }
     }
 
-    // -------- Stage UI (accordion + progress via localStorage) --------
-    function _progressKey(id){ return 'dojo_progress_' + id; }
-    function getProgress(chid){ try { return JSON.parse(localStorage.getItem(_progressKey(chid))) || {}; } catch(_) { return {}; } }
-    function setProgress(chid, key, val){ const p = getProgress(chid); p[key] = !!val; localStorage.setItem(_progressKey(chid), JSON.stringify(p)); }
-    function allCoreStagesDone(chid){ const p = getProgress(chid); return !!(p['1A'] && p['2'] && p['3']); }
-
-    function buildStageUI(challengeId, html){
-      if (!html){ els.question.innerHTML = '<p>No description provided.</p>'; return; }
-
-      const tmp = document.createElement('div'); tmp.innerHTML = html;
-      const children = Array.from(tmp.children);
-      const sections = [];
-      let cur = null;
-      children.forEach(node => {
-        if (node.tagName && node.tagName.toLowerCase()==='h2'){ if (cur) sections.push(cur); cur = { title: node.textContent.trim(), nodes: [] }; }
-        else if (cur){ cur.nodes.push(node.outerHTML || node.textContent); }
-      });
-      if (cur) sections.push(cur);
-      if (!sections.length){ els.question.innerHTML = html; return; }
-
-      const partFor = (t) => {
-        const s = t.toLowerCase();
-        if (s.includes('stage 1')) return '1A';
-        if (s.includes('stage 2')) return '2';
-        if (s.includes('stage 3')) return '3';
-        if (s.includes('brief'))   return 'brief';
-        return '';
-      };
-
-      const prog = getProgress(challengeId);
-      const coreDone = allCoreStagesDone(challengeId);
-
-      let out = '<div class="progress">';
-      sections.forEach(sec => {
-        const pid = partFor(sec.title);
-        const done = pid === 'brief' ? (coreDone && prog['brief']) : !!prog[pid];
-        const locked = (pid === 'brief' && !coreDone);
-        const cls = done ? 'pill-step done' : locked ? 'pill-step locked' : 'pill-step';
-        out += `<div class="${cls}">${sec.title.replace(/^##?\\s*/,'')}</div>`;
-      });
-      out += '</div>';
-
-      sections.forEach((sec, idx) => {
-        const pid = partFor(sec.title);
-        const locked = (pid === 'brief' && !coreDone);
-        const done = pid === 'brief' ? (coreDone && prog['brief']) : !!prog[pid];
-        const statusText = locked ? 'Unlocks after all 3 stages' : (done ? '✓ Complete' : 'Click to expand');
-
-        out += `
-          <div class="stage ${idx===0 ? 'open' : ''} ${locked ? 'locked' : ''}" data-part="${pid}">
-            <div class="stage-header">
-              <div class="stage-title">${sec.title}</div>
-              <div class="stage-status">${statusText}</div>
-            </div>
-            <div class="stage-body markdown">
-              ${sec.nodes.join('')}
-            </div>
-          </div>
-        `;
-      });
-
-      els.question.innerHTML = out;
-
-      els.question.querySelectorAll('.stage-header').forEach(h => {
-        h.addEventListener('click', () => {
-          const stage = h.closest('.stage');
-          if (stage.classList.contains('locked')) return;
-          els.question.querySelectorAll('.stage').forEach(s => s.classList.remove('open'));
-          stage.classList.add('open');
-
-          const part = stage.dataset.part;
-          if (part && part !== 'brief'){ els.whichCheck.value = part; } // sync toolbar
-        });
-      });
-
-      const first = els.question.querySelector('.stage[data-part="1A"]');
-      if (first){ els.whichCheck.value = '1A'; }
-    }
-
-    // -------- Boot --------
+    /* ----------------- boot ----------------- */
     async function boot(){
       try{
         if (window.CodeMirror){
@@ -373,10 +279,6 @@
         const idxResp = await fetch(bust('challenges/challenges.json'));
         if (!idxResp.ok) throw new Error('Cannot load challenges.json ('+idxResp.status+')');
         APP.challenges = await idxResp.json();
-
-        if (!Array.isArray(APP.challenges) || !APP.challenges.length){
-          els.results.innerHTML = '<span class="warn">No challenges found. Ensure <code>challenges/challenges.json</code> exists.</span>';
-        }
 
         APP.challenges.sort((a,b)=> (a.order ?? 1e9) - (b.order ?? 1e9));
         const opts = ['<option value="">— Select a challenge —</option>']
@@ -398,22 +300,21 @@
 
     function onDialectChange(){
       if (!cm) return;
-      const v = els.modeSelect.value;
-      cm.setOption('mode', v === 'mysql' ? 'text/x-mysql' : 'text/x-sql');
+      cm.setOption('mode', els.modeSelect.value === 'mysql' ? 'text/x-mysql' : 'text/x-sql');
       setControlsEnabled(!!db);
     }
 
     function resetToNeutral(){
       APP.current = null; APP.seedSQL = '';
-      APP.grader = null; APP.graderReady = false; db = null; APP.currentDescHTML = '';
+      APP.grader = null; APP.graderReady = false; db = null;
       setControlsEnabled(false);
       els.challengeTitle.textContent = 'Workspace';
-      els.question.innerHTML = '<p>Details and schema of the challenge will show here.</p>';
+      els.question.innerHTML = '<p>Select a challenge to see the details and schema.</p>';
       setSQL('-- Pick a challenge to start your query here.');
       els.schema.textContent = '—';
       els.results.textContent = 'Test results will show here.';
       els.gradeDiff.innerHTML = ''; els.gradeStatus.textContent = ''; els.runInfo.textContent = '';
-      els.miniStatus.textContent = '';
+      els.stageSelect.selectedIndex = 0;
     }
 
     async function onChallengeChange(){
@@ -422,27 +323,20 @@
       await loadChallenge(val);
     }
 
-    // -------- Challenge load --------
     async function loadChallenge(id){
       try{
         setControlsEnabled(false);
-
         const meta = APP.challenges.find(c=>c.id===id);
         if (!meta) throw new Error('Challenge not found: ' + id);
         APP.current = meta;
 
-        // Seed & starter (cache-busted)
-        const [seedText, starterText] = await Promise.all([
-          fetch(bust(meta.seed)).then(r=>{ if(!r.ok) throw new Error('Seed not found'); return r.text(); }),
-          fetch(bust(meta.starter)).then(r=>{ if(!r.ok) throw new Error('Starter not found'); return r.text(); })
-        ]);
+        const seedText = await fetch(bust(meta.seed)).then(r=>{ if(!r.ok) throw new Error('Seed not found'); return r.text(); });
         APP.seedSQL = seedText;
 
-        // Reset DB
         db = new SQL.Database();
         db.run(APP.seedSQL);
 
-        // Load & render description (markdown -> HTML), then build stages UI
+        // description (Markdown/HTML)
         let desc = meta.description || '';
         if (meta.description_file){
           try{ const d = await fetch(bust(meta.description_file)); if (d.ok) desc = await d.text(); }catch(_){}
@@ -450,13 +344,12 @@
         const label = (meta.order ? `Challenge ${meta.order}: ${meta.title}` : (meta.title || 'Workspace'));
         els.challengeTitle.textContent = label;
         const html = DOMPurify.sanitize(marked.parse(desc || 'No description provided.'));
-        APP.currentDescHTML = html;
-        buildStageUI(APP.current.id, APP.currentDescHTML);
+        els.question.innerHTML = html;
 
-        // Editor starter (always blank, no answers)
+        // clear editor
         setSQL(DEFAULT_STARTER);
 
-        // Schema + quick preview
+        // schema + quick preview
         renderSchema();
         const tnames = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
         if (tnames.length && tnames[0].values.length){
@@ -467,9 +360,16 @@
           els.results.innerHTML = '<span class="muted">Seed loaded (no tables).</span>';
         }
 
-        // Load grader (optional)
+        // grader (optional)
         APP.graderReady = false; APP.grader = null;
         if (meta.grader){ await loadGrader(meta.grader); }
+
+        // populate stage list if grader exposes parts
+        if (APP.grader && Array.isArray(APP.grader.parts)){
+          els.stageSelect.innerHTML = APP.grader.parts.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+        } else {
+          els.stageSelect.innerHTML = `<option value="1">Stage 1</option><option value="2">Stage 2</option><option value="3">Stage 3</option><option value="bonus">Bonus</option>`;
+        }
 
         setControlsEnabled(true);
       }catch(e){
@@ -480,7 +380,6 @@
     async function loadGrader(src){
       const old = document.querySelector('script[data-challenge-grader]'); if (old) old.remove();
       APP.grader = null; window.CHALLENGE_GRADER = null;
-
       await new Promise((resolve) => {
         const s = document.createElement('script');
         s.src = src + (src.includes('?') ? '&' : '?') + 'v=' + Date.now();
@@ -491,7 +390,7 @@
       });
     }
 
-    // -------- Actions --------
+    /* ----------------- actions ----------------- */
     function runQuery(){
       if (!db){ els.results.innerHTML = '<span class="muted">No challenge loaded.</span>'; return; }
       const sql = getSQL().trim();
@@ -500,52 +399,17 @@
       try{
         const results = db.exec(sql);
         const ms = Math.max(1, Math.round(performance.now()-t0));
-        if (!results.length){ els.results.innerHTML = '<span class="muted">Query OK (no rows)</span>'; els.runInfo.textContent = `Time: ${ms} ms`; }
-        else { renderTable(results[0]); els.runInfo.textContent = `Rows: ${results[0].values.length} • Time: ${ms} ms`; }
-      }catch(e){ els.results.innerHTML = '<span class="warn">'+e.message+'</span>'; els.runInfo.textContent=''; }
-    }
-
-    async function miniCheck(){
-      if (!APP.graderReady || !APP.grader){ els.miniStatus.textContent = 'Checks unavailable for this challenge.'; return; }
-      if (!sqliteModeOn()){ els.miniStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.'; els.miniStatus.className='warn'; return; }
-      try{
-        els.miniStatus.textContent = 'Checking…'; els.miniStatus.className = 'muted';
-        els.gradeDiff.innerHTML = ''; els.gradeStatus.textContent = '';
-
-        const userSQL = getSQL().trim();
-        if (!isSelectLike(userSQL)){ els.miniStatus.textContent='Write a SELECT (or WITH … SELECT) query to check.'; els.miniStatus.className='warn'; return; }
-
-        const partId = els.whichCheck.value;
-        const r = await APP.grader.check(partId, userSQL, APP.seedSQL, SQL);
-        if (r && r.ok){
-          els.miniStatus.textContent = r.status || '✅ Passed!'; els.miniStatus.className = 'ok';
-          els.gradeDiff.innerHTML = r.diffHTML || '';
-          if (APP.current){ setProgress(APP.current.id, partId, true); buildStageUI(APP.current.id, APP.currentDescHTML); }
+        if (!results.length){
+          els.results.innerHTML = '<span class="muted">Query OK (no rows)</span>';
+          els.runInfo.textContent = `Time: ${ms} ms`;
         } else {
-          els.miniStatus.textContent = (r && r.status) ? r.status : '❌ Not correct.'; els.miniStatus.className = 'warn';
-          els.gradeDiff.innerHTML = (r && r.diffHTML) ? r.diffHTML : '';
+          renderTable(results[0]);
+          els.runInfo.textContent = `Rows: ${results[0].values.length} • Time: ${ms} ms`;
         }
-      }catch(e){ els.miniStatus.textContent = 'Error: ' + e.message; els.miniStatus.className = 'warn'; }
-    }
-
-    async function grade(){
-      if (!APP.graderReady || !APP.grader){ els.gradeStatus.textContent = 'Checks unavailable for this challenge.'; els.gradeStatus.className='warn'; return; }
-      if (!sqliteModeOn()){ els.gradeStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.'; els.gradeStatus.className='warn'; return; }
-      try{
-        els.gradeStatus.textContent = 'Grading…'; els.gradeStatus.className = 'muted'; els.gradeDiff.innerHTML = '';
-        const userSQL = getSQL().trim();
-        if (!isSelectLike(userSQL)){ els.gradeStatus.textContent='Submit a SELECT (or WITH … SELECT) query.'; els.gradeStatus.className='warn'; return; }
-
-        const r = await APP.grader.grade(userSQL, APP.seedSQL, SQL);
-        if (r && r.ok){
-          els.gradeStatus.textContent = r.status || '✅ Correct!'; els.gradeStatus.className = 'ok';
-          els.gradeDiff.innerHTML = r.diffHTML || '';
-          if (APP.current){ setProgress(APP.current.id, '3', true); setProgress(APP.current.id, 'brief', true); buildStageUI(APP.current.id, APP.currentDescHTML); }
-        } else {
-          els.gradeStatus.textContent = (r && r.status) ? r.status : '❌ Not quite — see differences below.'; els.gradeStatus.className = 'warn';
-          els.gradeDiff.innerHTML = (r && r.diffHTML) ? r.diffHTML : '';
-        }
-      }catch(e){ els.gradeStatus.textContent = 'Error: ' + e.message; els.gradeStatus.className = 'warn'; }
+      }catch(e){
+        els.results.innerHTML = '<span class="warn">'+e.message+'</span>';
+        els.runInfo.textContent = '';
+      }
     }
 
     function resetDB(){
@@ -554,28 +418,49 @@
       renderSchema();
       const tnames = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
       if (tnames.length && tnames[0].values.length){
-        const firstTable = tnames[0].values[0][0]; const res = db.exec(`SELECT * FROM ${firstTable} LIMIT 5`);
+        const firstTable = tnames[0].values[0][0];
+        const res = db.exec(`SELECT * FROM ${firstTable} LIMIT 5`);
         if (res.length) renderTable(res[0]); else els.results.innerHTML = '<span class="muted">Seed loaded.</span>';
       } else { els.results.innerHTML = '<span class="muted">Seed loaded (no tables).</span>'; }
     }
 
-    // Wire up
+    async function grade(){
+      if (!APP.graderReady || !APP.grader){
+        els.gradeStatus.textContent = 'Checks unavailable for this challenge.'; els.gradeStatus.className='warn'; return;
+      }
+      if (!sqliteModeOn()){
+        els.gradeStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.';
+        els.gradeStatus.className='warn'; return;
+      }
+      try{
+        els.gradeStatus.textContent = 'Grading…'; els.gradeStatus.className = 'muted'; els.gradeDiff.innerHTML = '';
+        const userSQL = getSQL().trim();
+        if (!/^select/i.test(userSQL)){
+          els.gradeStatus.textContent='Only SELECT queries can be submitted.'; els.gradeStatus.className='warn'; return;
+        }
+        const stageId = els.stageSelect.value || '1';
+        const r = await APP.grader.check(stageId, userSQL, APP.seedSQL, SQL);
+        if (r && r.ok){
+          els.gradeStatus.textContent = r.status || '✅ Passed!';
+          els.gradeStatus.className = 'ok';
+          els.gradeDiff.innerHTML = r.diffHTML || '';
+        } else {
+          els.gradeStatus.textContent = (r && r.status) ? r.status : '❌ Not correct.';
+          els.gradeStatus.className = 'warn';
+          els.gradeDiff.innerHTML = (r && r.diffHTML) ? r.diffHTML : '';
+        }
+      }catch(e){
+        els.gradeStatus.textContent = 'Error: ' + e.message; els.gradeStatus.className = 'warn';
+      }
+    }
+
+    /* ----------------- wire & start ----------------- */
     document.getElementById('run').addEventListener('click', runQuery);
     document.getElementById('reset').addEventListener('click', resetDB);
-    document.getElementById('mini-check').addEventListener('click', miniCheck);
     document.getElementById('check').addEventListener('click', grade);
     document.addEventListener('keydown', (e)=>{ if (!cm && (e.ctrlKey||e.metaKey) && e.key==='Enter') runQuery(); });
 
-    // Start
-    (async ()=>{ 
-      try{
-        if (window.CodeMirror){
-          cm = CodeMirror.fromTextArea(els.editorTA, { mode:'text/x-sql', theme:'neo', lineNumbers:true, autofocus:true });
-          cm.addKeyMap({ 'Ctrl-Enter': runQuery, 'Cmd-Enter': runQuery });
-        }
-      }catch(_){}
-      boot();
-    })();
+    boot();
   </script>
 </body>
 </html>
