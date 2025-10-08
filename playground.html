@@ -12,30 +12,17 @@
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
-    body{
-      margin:0; background:var(--bg);
-      font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:#111
-    }
-    header{
-      padding:12px 20px; border-bottom:1px solid var(--border);
-      background:#fff; display:flex; justify-content:space-between; align-items:center; gap:12px
-    }
+    body{ margin:0; background:var(--bg); font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:#111 }
+    header{ padding:12px 20px; border-bottom:1px solid var(--border); background:#fff; display:flex; justify-content:space-between; align-items:center; gap:12px }
     header h1{ margin:0; font-size:18px }
     .subhelp{ color: var(--muted); font-size:12px; margin-top:2px; }
-    #status{ display:none } /* Keep for JS but hidden */
+    #status{ display:none } /* keep for JS but hidden */
 
     .hstack{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
-    .pickerbar{
-      background:#fff; border-bottom:1px solid var(--border);
-      padding:10px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap
-    }
+    .pickerbar{ background:#fff; border-bottom:1px solid var(--border); padding:10px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap }
     .help{ color:#374151; font-size:13px }
 
-    main{
-      max-width:1400px; margin:0 auto;
-      display:grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap:16px; padding:16px
-    }
+    main{ max-width:1400px; margin:0 auto; display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:16px; padding:16px }
     @media (max-width: 900px){ main{ grid-template-columns:1fr } }
 
     .panel{ border:1px solid var(--border); border-radius:12px; background:#fff; min-width:0; }
@@ -45,9 +32,7 @@
     .ok{ color:var(--ok); font-weight:600 }
     .warn{ color:var(--warn); font-weight:600 }
 
-    select,button{
-      padding:8px 12px; border-radius:10px; border:1px solid #cfcfcf; background:#fff
-    }
+    select,button{ padding:8px 12px; border-radius:10px; border:1px solid #cfcfcf; background:#fff }
     button.primary{ background:#111; color:#fff; border-color:#111; cursor:pointer }
     button.success{ background:var(--ok); color:#fff; border-color:var(--ok); cursor:pointer }
     button.success:hover{ background:var(--ok-d); border-color:var(--ok-d) }
@@ -56,17 +41,10 @@
 
     .toolbar{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px }
 
-    .CodeMirror{
-      border:1px solid var(--border); border-radius:10px;
-      height:clamp(220px, 45vh, 520px); background:#fff; width:100%;
-    }
+    .CodeMirror{ border:1px solid var(--border); border-radius:10px; height:clamp(220px, 45vh, 520px); background:#fff; width:100%; }
     textarea{ width:100%; min-height:220px; }
 
-    #results{
-      margin-top:12px; border:1px solid var(--border); border-radius:10px;
-      padding:10px; min-height:52px; max-height:clamp(160px, 38vh, 460px);
-      overflow:auto; background:#fff;
-    }
+    #results{ margin-top:12px; border:1px solid var(--border); border-radius:10px; padding:10px; min-height:52px; max-height:clamp(160px, 38vh, 460px); overflow:auto; background:#fff; }
     #grade-diff{ margin-top:10px; overflow:auto }
     .table-wrap{ width:100%; overflow:auto }
     table{ border-collapse:collapse; width:100%; min-width:600px; }
@@ -74,18 +52,9 @@
     th{ background:#f9fafb; position:sticky; top:0; }
     td.col-idx, th.col-idx{ width:56px; text-align:right; color:#6b7280; background:#fafafa; position:sticky; left:0 }
     tr:nth-child(even) td{ background:#fcfcfc }
-    @media (max-width: 700px){
-      th{ position:static }
-      td.col-idx, th.col-idx{ position:static }
-      table{ min-width:480px }
-    }
+    @media (max-width: 700px){ th{ position:static } td.col-idx, th.col-idx{ position:static } table{ min-width:480px } }
 
-    pre.ascii{
-      background:#f9fafb; border:1px solid var(--border); border-radius:10px;
-      padding:10px; overflow:auto; margin:8px 0; font-size:13px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      line-height:1.35;
-    }
+    pre.ascii{ background:#f9fafb; border:1px solid var(--border); border-radius:10px; padding:10px; overflow:auto; margin:8px 0; font-size:13px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; line-height:1.35; }
 
     /* Markdown description styles */
     .markdown :is(h1,h2,h3){ margin:10px 0 6px; font-weight:700 }
@@ -97,6 +66,20 @@
     .markdown li{ margin:4px 0 }
     .markdown code{ background:#f3f4f6; border:1px solid var(--border); border-radius:6px; padding:0 4px }
     .markdown pre code{ display:block; padding:10px; border-radius:10px }
+
+    /* Stage progress + accordion */
+    .progress{ display:flex; gap:8px; flex-wrap:wrap; margin:6px 0 10px }
+    .pill-step{ font-size:12px; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:#f9fafb; color:#374151 }
+    .pill-step.done{ background:#ecfdf5; border-color:#bbf7d0; color:#065f46 }
+    .pill-step.locked{ background:#f3f4f6; color:#9ca3af; border-style:dashed }
+
+    .stage{ border:1px solid var(--border); border-radius:10px; margin:10px 0; overflow:hidden }
+    .stage.locked{ opacity:.8 }
+    .stage-header{ display:flex; justify-content:space-between; align-items:center; gap:12px; cursor:pointer; padding:12px 14px; background:#f9fafb }
+    .stage-title{ font-weight:600 }
+    .stage-status{ font-size:12px; color:#6b7280 }
+    .stage-body{ display:none; padding:12px 14px }
+    .stage.open .stage-body{ display:block }
 
     /* Hidden until a challenge & (SQLite) grader is ready */
     .when-ready{ display:none; }
@@ -131,21 +114,18 @@
   </div>
 
   <main>
-    <!-- LEFT -->
+    <!-- LEFT: Stages accordion will render here -->
     <section class="panel">
       <div class="pad">
         <h2 id="challenge-title">Workspace</h2>
-
-        <div id="question" class="markdown muted">
-          <p>Details and schema of the challenge will show here.</p>
-        </div>
+        <div id="question" class="markdown muted"><p>Details and schema of the challenge will show here.</p></div>
 
         <h3 style="margin-top:12px;">Schema</h3>
         <div id="schema" class="muted">—</div>
       </div>
     </section>
 
-    <!-- RIGHT -->
+    <!-- RIGHT: editor + run/results + stage check controls -->
     <section class="panel">
       <div class="pad">
         <h2>Editor</h2>
@@ -156,7 +136,7 @@
           <span class="muted" style="font-size:12px;">Ctrl/⌘+Enter</span>
           <button id="reset" disabled>Reset DB</button>
 
-          <!-- moved "Validate your result" controls here -->
+          <!-- Stage check controls -->
           <span class="muted when-ready" style="font-size:12px;">Stage to check:</span>
           <select id="which-check" class="when-ready" disabled>
             <option value="1A">Stage 1 — Signal Check</option>
@@ -186,7 +166,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 
   <script>
-    // ----- Helpers / state -----
+    // -------- Helpers / state --------
     const bust = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + Date.now();
 
     // Accept SELECT or WITH (after stripping comments/whitespace)
@@ -199,11 +179,9 @@
       return stripped.startsWith('select') || stripped.startsWith('with');
     }
 
-    // Blank starter (keeps answers out of the editor)
+    // Editor starter (keeps answers out)
     const DEFAULT_STARTER = `-- You can run any SELECTs you need to explore
--- e.g.
--- SELECT * FROM some_table LIMIT 5;
-
+-- e.g. SELECT * FROM some_table LIMIT 5;
 -- Write your solution below:
 `;
 
@@ -212,13 +190,12 @@
       challenges: [],
       current: null,
       seedSQL: '',
-      starterSQL: '',
       graderReady: false,
       grader: null,
       currentDescHTML: ''
     };
 
-    // ----- Elements -----
+    // -------- Elements --------
     const els = {
       status: document.getElementById('status'),
       challengeSelect: document.getElementById('challenge'),
@@ -240,57 +217,37 @@
       dialectNote: document.getElementById('dialect-note')
     };
 
-    // ----- UI helpers -----
+    // -------- UI helpers --------
     function sqliteModeOn(){ return !els.modeSelect || els.modeSelect.value === 'sql'; }
-    function updateDialectNote(){
-      els.dialectNote.textContent = sqliteModeOn() ? '' : 'Checks run on SQLite. MySQL mode changes highlighting only.';
-    }
-    function toggleCheckRow(canShow){
-      document.querySelectorAll('.when-ready').forEach(el => el.style.display = (canShow ? '' : 'none'));
-    }
+    function updateDialectNote(){ els.dialectNote.textContent = sqliteModeOn() ? '' : 'Checks run on SQLite. MySQL mode changes highlighting only.'; }
+    function toggleCheckRow(canShow){ document.querySelectorAll('.when-ready').forEach(el => el.style.display = (canShow ? '' : 'none')); }
     function setControlsEnabled(on){
-      els.run.disabled = !on;
-      els.reset.disabled = !on;
-
+      els.run.disabled = !on; els.reset.disabled = !on;
       const sqliteOnly = sqliteModeOn();
       const canCheck = on && APP.graderReady && sqliteOnly;
-      els.check.disabled = !canCheck;
-      els.miniCheckBtn.disabled = !canCheck;
-      els.whichCheck.disabled = !canCheck;
+      els.check.disabled = !canCheck; els.miniCheckBtn.disabled = !canCheck; els.whichCheck.disabled = !canCheck;
       toggleCheckRow(canCheck);
-
-      if (on && APP.graderReady && !sqliteOnly){
-        els.miniStatus.textContent = 'Checks are SQLite-only. Switch Language to SQL to enable.';
-        els.miniStatus.className = 'muted';
-      } else {
-        els.miniStatus.textContent = '';
-      }
+      els.miniStatus.textContent = (on && APP.graderReady && !sqliteOnly) ? 'Checks are SQLite-only. Switch to SQL to enable.' : '';
+      els.miniStatus.className = 'muted';
       updateDialectNote();
     }
     function getSQL(){ return cm ? cm.getValue() : els.editorTA.value; }
     function setSQL(s){ if (cm) cm.setValue(s); else els.editorTA.value = s; }
 
-    // ----- Rendering -----
+    // -------- Render schema/table --------
     function tableHTML(result){
       if (!result || !result.columns) return '<span class="muted">No rows.</span>';
       const { columns, values } = result;
       let html = '<div class="table-wrap"><table><thead><tr>';
-      html += '<th class="col-idx">#</th>';
-      html += columns.map(c=>`<th>${c}</th>`).join('');
-      html += '</tr></thead><tbody>';
+      html += '<th class="col-idx">#</th>' + columns.map(c=>`<th>${c}</th>`).join('') + '</tr></thead><tbody>';
       for (let i=0;i<values.length;i++){
-        html += '<tr>';
-        html += `<td class="col-idx">${i+1}</td>`;
-        html += values[i].map(v=>`<td>${v===null?'<i>null</i>':String(v)}</td>`).join('');
-        html += '</tr>';
+        html += '<tr><td class="col-idx">'+(i+1)+'</td>'+values[i].map(v=>`<td>${v===null?'<i>null</i>':String(v)}</td>`).join('')+'</tr>';
       }
       html += '</tbody></table></div>';
       return html;
     }
-    function renderTable(result){
-      els.results.innerHTML = tableHTML(result);
-      els.results.classList.remove('muted');
-    }
+    function renderTable(result){ els.results.innerHTML = tableHTML(result); els.results.classList.remove('muted'); }
+
     function renderSchema(){
       if (!db){ els.schema.textContent = '—'; return; }
       try{
@@ -325,35 +282,22 @@
       }catch(e){ els.schema.innerHTML = '<span class="warn">Error loading schema: '+e.message+'</span>'; }
     }
 
-    // ---------- Dojo Stages (accordion & progress) ----------
+    // -------- Stage UI (accordion + progress via localStorage) --------
     function _progressKey(id){ return 'dojo_progress_' + id; }
-    function getProgress(chid){
-      try { return JSON.parse(localStorage.getItem(_progressKey(chid))) || {}; }
-      catch(_) { return {}; }
-    }
-    function setProgress(chid, key, val){
-      const p = getProgress(chid); p[key] = !!val;
-      localStorage.setItem(_progressKey(chid), JSON.stringify(p));
-    }
-    function allCoreStagesDone(chid){
-      const p = getProgress(chid);
-      return !!(p['1A'] && p['2'] && p['3']);
-    }
+    function getProgress(chid){ try { return JSON.parse(localStorage.getItem(_progressKey(chid))) || {}; } catch(_) { return {}; } }
+    function setProgress(chid, key, val){ const p = getProgress(chid); p[key] = !!val; localStorage.setItem(_progressKey(chid), JSON.stringify(p)); }
+    function allCoreStagesDone(chid){ const p = getProgress(chid); return !!(p['1A'] && p['2'] && p['3']); }
+
     function buildStageUI(challengeId, html){
       if (!html){ els.question.innerHTML = '<p>No description provided.</p>'; return; }
 
-      const tmp = document.createElement('div');
-      tmp.innerHTML = html;
+      const tmp = document.createElement('div'); tmp.innerHTML = html;
       const children = Array.from(tmp.children);
       const sections = [];
       let cur = null;
       children.forEach(node => {
-        if (node.tagName && node.tagName.toLowerCase()==='h2'){
-          if (cur) sections.push(cur);
-          cur = { title: node.textContent.trim(), nodes: [] };
-        } else if (cur){
-          cur.nodes.push(node.outerHTML || node.textContent);
-        }
+        if (node.tagName && node.tagName.toLowerCase()==='h2'){ if (cur) sections.push(cur); cur = { title: node.textContent.trim(), nodes: [] }; }
+        else if (cur){ cur.nodes.push(node.outerHTML || node.textContent); }
       });
       if (cur) sections.push(cur);
       if (!sections.length){ els.question.innerHTML = html; return; }
@@ -409,9 +353,7 @@
           stage.classList.add('open');
 
           const part = stage.dataset.part;
-          if (part && part !== 'brief'){
-            els.whichCheck.value = part; // keep toolbar in sync
-          }
+          if (part && part !== 'brief'){ els.whichCheck.value = part; } // sync toolbar
         });
       });
 
@@ -419,14 +361,13 @@
       if (first){ els.whichCheck.value = '1A'; }
     }
 
-    // ----- Boot -----
+    // -------- Boot --------
     async function boot(){
       try{
         if (window.CodeMirror){
           cm = CodeMirror.fromTextArea(els.editorTA, { mode:'text/x-sql', theme:'neo', lineNumbers:true, autofocus:true });
           cm.addKeyMap({ 'Ctrl-Enter': runQuery, 'Cmd-Enter': runQuery });
         }
-
         SQL = await initSqlJs({ locateFile:f=>`https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${f}` });
 
         const idxResp = await fetch(bust('challenges/challenges.json'));
@@ -463,7 +404,7 @@
     }
 
     function resetToNeutral(){
-      APP.current = null; APP.seedSQL = APP.starterSQL = '';
+      APP.current = null; APP.seedSQL = '';
       APP.grader = null; APP.graderReady = false; db = null; APP.currentDescHTML = '';
       setControlsEnabled(false);
       els.challengeTitle.textContent = 'Workspace';
@@ -481,7 +422,7 @@
       await loadChallenge(val);
     }
 
-    // ----- Challenge load -----
+    // -------- Challenge load --------
     async function loadChallenge(id){
       try{
         setControlsEnabled(false);
@@ -490,31 +431,32 @@
         if (!meta) throw new Error('Challenge not found: ' + id);
         APP.current = meta;
 
+        // Seed & starter (cache-busted)
         const [seedText, starterText] = await Promise.all([
           fetch(bust(meta.seed)).then(r=>{ if(!r.ok) throw new Error('Seed not found'); return r.text(); }),
           fetch(bust(meta.starter)).then(r=>{ if(!r.ok) throw new Error('Starter not found'); return r.text(); })
         ]);
-        APP.seedSQL = seedText; APP.starterSQL = starterText;
+        APP.seedSQL = seedText;
 
+        // Reset DB
         db = new SQL.Database();
         db.run(APP.seedSQL);
 
+        // Load & render description (markdown -> HTML), then build stages UI
         let desc = meta.description || '';
         if (meta.description_file){
-          try{
-            const d = await fetch(bust(meta.description_file));
-            if (d.ok) desc = await d.text();
-          }catch(_){}
+          try{ const d = await fetch(bust(meta.description_file)); if (d.ok) desc = await d.text(); }catch(_){}
         }
         const label = (meta.order ? `Challenge ${meta.order}: ${meta.title}` : (meta.title || 'Workspace'));
         els.challengeTitle.textContent = label;
-
         const html = DOMPurify.sanitize(marked.parse(desc || 'No description provided.'));
         APP.currentDescHTML = html;
         buildStageUI(APP.current.id, APP.currentDescHTML);
 
+        // Editor starter (always blank, no answers)
         setSQL(DEFAULT_STARTER);
 
+        // Schema + quick preview
         renderSchema();
         const tnames = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
         if (tnames.length && tnames[0].values.length){
@@ -525,6 +467,7 @@
           els.results.innerHTML = '<span class="muted">Seed loaded (no tables).</span>';
         }
 
+        // Load grader (optional)
         APP.graderReady = false; APP.grader = null;
         if (meta.grader){ await loadGrader(meta.grader); }
 
@@ -535,26 +478,20 @@
     }
 
     async function loadGrader(src){
-      const old = document.querySelector('script[data-challenge-grader]');
-      if (old) old.remove();
-
+      const old = document.querySelector('script[data-challenge-grader]'); if (old) old.remove();
       APP.grader = null; window.CHALLENGE_GRADER = null;
 
       await new Promise((resolve) => {
         const s = document.createElement('script');
         s.src = src + (src.includes('?') ? '&' : '?') + 'v=' + Date.now();
-        s.async = true;
-        s.dataset.challengeGrader = '1';
-        s.onload = () => {
-          if (window.CHALLENGE_GRADER) { APP.grader = window.CHALLENGE_GRADER; APP.graderReady = true; }
-          resolve();
-        };
+        s.async = true; s.dataset.challengeGrader = '1';
+        s.onload = () => { if (window.CHALLENGE_GRADER) { APP.grader = window.CHALLENGE_GRADER; APP.graderReady = true; } resolve(); };
         s.onerror = () => resolve();
         document.body.appendChild(s);
       });
     }
 
-    // ----- Actions -----
+    // -------- Actions --------
     function runQuery(){
       if (!db){ els.results.innerHTML = '<span class="muted">No challenge loaded.</span>'; return; }
       const sql = getSQL().trim();
@@ -563,97 +500,52 @@
       try{
         const results = db.exec(sql);
         const ms = Math.max(1, Math.round(performance.now()-t0));
-        if (!results.length){
-          els.results.innerHTML = '<span class="muted">Query OK (no rows)</span>';
-          els.runInfo.textContent = `Time: ${ms} ms`;
-        } else {
-          renderTable(results[0]);
-          els.runInfo.textContent = `Rows: ${results[0].values.length} • Time: ${ms} ms`;
-        }
-      }catch(e){
-        els.results.innerHTML = '<span class="warn">'+e.message+'</span>';
-        els.runInfo.textContent = '';
-      }
+        if (!results.length){ els.results.innerHTML = '<span class="muted">Query OK (no rows)</span>'; els.runInfo.textContent = `Time: ${ms} ms`; }
+        else { renderTable(results[0]); els.runInfo.textContent = `Rows: ${results[0].values.length} • Time: ${ms} ms`; }
+      }catch(e){ els.results.innerHTML = '<span class="warn">'+e.message+'</span>'; els.runInfo.textContent=''; }
     }
 
     async function miniCheck(){
       if (!APP.graderReady || !APP.grader){ els.miniStatus.textContent = 'Checks unavailable for this challenge.'; return; }
-      if (!sqliteModeOn()){
-        els.miniStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.';
-        els.miniStatus.className='warn'; return;
-      }
+      if (!sqliteModeOn()){ els.miniStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.'; els.miniStatus.className='warn'; return; }
       try{
         els.miniStatus.textContent = 'Checking…'; els.miniStatus.className = 'muted';
         els.gradeDiff.innerHTML = ''; els.gradeStatus.textContent = '';
 
         const userSQL = getSQL().trim();
-        if (!isSelectLike(userSQL)){
-          els.miniStatus.textContent='Write a SELECT (or WITH … SELECT) query to check.';
-          els.miniStatus.className='warn'; return;
-        }
+        if (!isSelectLike(userSQL)){ els.miniStatus.textContent='Write a SELECT (or WITH … SELECT) query to check.'; els.miniStatus.className='warn'; return; }
 
         const partId = els.whichCheck.value;
         const r = await APP.grader.check(partId, userSQL, APP.seedSQL, SQL);
         if (r && r.ok){
-          els.miniStatus.textContent = r.status || '✅ Passed!';
-          els.miniStatus.className = 'ok';
+          els.miniStatus.textContent = r.status || '✅ Passed!'; els.miniStatus.className = 'ok';
           els.gradeDiff.innerHTML = r.diffHTML || '';
-
-          if (APP.current){
-            // record progress and rebuild stage UI so pills update
-            localStorage.setItem('dojo_progress_'+APP.current.id,
-              JSON.stringify(Object.assign({}, JSON.parse(localStorage.getItem('dojo_progress_'+APP.current.id) || '{}'), { [partId]: true })));
-            buildStageUI(APP.current.id, APP.currentDescHTML);
-          }
+          if (APP.current){ setProgress(APP.current.id, partId, true); buildStageUI(APP.current.id, APP.currentDescHTML); }
         } else {
-          els.miniStatus.textContent = (r && r.status) ? r.status : '❌ Not correct.';
-          els.miniStatus.className = 'warn';
+          els.miniStatus.textContent = (r && r.status) ? r.status : '❌ Not correct.'; els.miniStatus.className = 'warn';
           els.gradeDiff.innerHTML = (r && r.diffHTML) ? r.diffHTML : '';
         }
-      }catch(e){
-        els.miniStatus.textContent = 'Error: ' + e.message; els.miniStatus.className = 'warn';
-      }
+      }catch(e){ els.miniStatus.textContent = 'Error: ' + e.message; els.miniStatus.className = 'warn'; }
     }
 
     async function grade(){
-      if (!APP.graderReady || !APP.grader){
-        els.gradeStatus.textContent = 'Checks unavailable for this challenge.'; els.gradeStatus.className='warn'; return;
-      }
-      if (!sqliteModeOn()){
-        els.gradeStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.';
-        els.gradeStatus.className='warn'; return;
-      }
+      if (!APP.graderReady || !APP.grader){ els.gradeStatus.textContent = 'Checks unavailable for this challenge.'; els.gradeStatus.className='warn'; return; }
+      if (!sqliteModeOn()){ els.gradeStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.'; els.gradeStatus.className='warn'; return; }
       try{
         els.gradeStatus.textContent = 'Grading…'; els.gradeStatus.className = 'muted'; els.gradeDiff.innerHTML = '';
-
         const userSQL = getSQL().trim();
-        if (!isSelectLike(userSQL)){
-          els.gradeStatus.textContent='Submit a SELECT (or WITH … SELECT) query.';
-          els.gradeStatus.className='warn'; return;
-        }
+        if (!isSelectLike(userSQL)){ els.gradeStatus.textContent='Submit a SELECT (or WITH … SELECT) query.'; els.gradeStatus.className='warn'; return; }
 
         const r = await APP.grader.grade(userSQL, APP.seedSQL, SQL);
         if (r && r.ok){
-          els.gradeStatus.textContent = r.status || '✅ Correct!';
-          els.gradeStatus.className = 'ok';
+          els.gradeStatus.textContent = r.status || '✅ Correct!'; els.gradeStatus.className = 'ok';
           els.gradeDiff.innerHTML = r.diffHTML || '';
-
-          if (APP.current){
-            // mark stage 3 + brief unlocked
-            const key = 'dojo_progress_'+APP.current.id;
-            const prev = JSON.parse(localStorage.getItem(key) || '{}');
-            prev['3'] = true; prev['brief'] = true;
-            localStorage.setItem(key, JSON.stringify(prev));
-            buildStageUI(APP.current.id, APP.currentDescHTML);
-          }
+          if (APP.current){ setProgress(APP.current.id, '3', true); setProgress(APP.current.id, 'brief', true); buildStageUI(APP.current.id, APP.currentDescHTML); }
         } else {
-          els.gradeStatus.textContent = (r && r.status) ? r.status : '❌ Not quite — see differences below.';
-          els.gradeStatus.className = 'warn';
+          els.gradeStatus.textContent = (r && r.status) ? r.status : '❌ Not quite — see differences below.'; els.gradeStatus.className = 'warn';
           els.gradeDiff.innerHTML = (r && r.diffHTML) ? r.diffHTML : '';
         }
-      }catch(e){
-        els.gradeStatus.textContent = 'Error: ' + e.message; els.gradeStatus.className = 'warn';
-      }
+      }catch(e){ els.gradeStatus.textContent = 'Error: ' + e.message; els.gradeStatus.className = 'warn'; }
     }
 
     function resetDB(){
@@ -662,20 +554,28 @@
       renderSchema();
       const tnames = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
       if (tnames.length && tnames[0].values.length){
-        const firstTable = tnames[0].values[0][0];
-        const res = db.exec(`SELECT * FROM ${firstTable} LIMIT 5`);
+        const firstTable = tnames[0].values[0][0]; const res = db.exec(`SELECT * FROM ${firstTable} LIMIT 5`);
         if (res.length) renderTable(res[0]); else els.results.innerHTML = '<span class="muted">Seed loaded.</span>';
       } else { els.results.innerHTML = '<span class="muted">Seed loaded (no tables).</span>'; }
     }
 
-    // ----- Wire up & start -----
+    // Wire up
     document.getElementById('run').addEventListener('click', runQuery);
     document.getElementById('reset').addEventListener('click', resetDB);
     document.getElementById('mini-check').addEventListener('click', miniCheck);
     document.getElementById('check').addEventListener('click', grade);
     document.addEventListener('keydown', (e)=>{ if (!cm && (e.ctrlKey||e.metaKey) && e.key==='Enter') runQuery(); });
 
-    boot();
+    // Start
+    (async ()=>{ 
+      try{
+        if (window.CodeMirror){
+          cm = CodeMirror.fromTextArea(els.editorTA, { mode:'text/x-sql', theme:'neo', lineNumbers:true, autofocus:true });
+          cm.addKeyMap({ 'Ctrl-Enter': runQuery, 'Cmd-Enter': runQuery });
+        }
+      }catch(_){}
+      boot();
+    })();
   </script>
 </body>
 </html>
