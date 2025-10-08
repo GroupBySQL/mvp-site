@@ -11,21 +11,19 @@ Every customer has at least one deployment (cloud and/or on-prem).
 
 ## Stage 1 – OnPrem Deployment Only
 Find accounts that are OnPrem with no active cloud deployments.  
-Expected output: Result has one column `account_id`, sorted ascending.  
+**Expected output**: Result has one column `account_id`, sorted ascending.  
 
 Tables: `telemetry`, `deployments`  
 
----
 
 ## Stage 2 – Catergorize Accounts-Level Deployment
 Flag active cloud/on-prem per accounts in 'accounts'.  
-Expected output: One row per `account_id` with:
+**Expected output**: One row per `account_id` with:
 - `has_active_cloud` (1 or 0)
 - `has_onprem` (1 or 0)
 
 Tables: `accounts`, `telemetry`, `deployments`  
 
----
 
 ## Stage 3 – Customer Roll-Up
 Summarize per customer using the following logic: 
@@ -33,16 +31,16 @@ Hybrid - if customer has any active cloud AND any on-prem deployment
 Cloud - if customer has any active cloud
 OnPrem - if customer has any on-prem deployment
 
-Expected output:  One row per `customer_id` with `deployment_model` {`Hybrid`, `Cloud`, `OnPrem`}.
+**Expected output**:  One row per `customer_id` with `deployment_model` {`Hybrid`, `Cloud`, `OnPrem`}.
 NOTE: Every customer has at least one deployment (cloud and/or on-prem).
 
 Tables:`customers`, `accounts`, flags you derived in Stage 2 (or equivalent logic)
 
----
+
 
 ## Bonus Stage – Customer Migration
-List customers that migrated from OnPrem to Cloud: they have a **current active cloud** deployment and that cloud’s start date is **later** than their **last** on-prem sighting.  
-
+List customers that migrated from OnPrem to Cloud: they have a **current active cloud** deployment and that cloud’s start date is **later** than their **last** OnPrem sighting.  
+**Expected output**: One row per `customer_id` with their active cloud date `active_from` and the last OnPrem `seen_at`.
 Tables:`customers`, `accounts`,`telemetry`, `deployments`  
 
 ---
@@ -54,4 +52,4 @@ Tables:`customers`, `accounts`,`telemetry`, `deployments`
 - ☐ On-Prem
 - ☐ Hybrid
 
-*(This unlocks after you pass Stages 1, 2, and 3.)*
+*(This unlocks after you pass Stages 3)*
