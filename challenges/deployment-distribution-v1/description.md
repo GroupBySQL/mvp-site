@@ -9,7 +9,7 @@
 **Customer categories in this dataset:** **Cloud**, **On-Prem**, **Hybrid**.  
 Every customer has at least one deployment (cloud and/or on-prem).
 
-## Stage 1 – Signal Check
+## Stage 1 – OnPrem Deployment Only
 Find accounts that are OnPrem with no active cloud deployments.  
 Expected output: Result has one column `account_id`, sorted ascending.  
 
@@ -17,7 +17,7 @@ Tables: `telemetry`, `deployments`
 
 ---
 
-## Stage 2 – Source Map
+## Stage 2 – Catergorize Accounts-Level Deployment
 Flag active cloud/on-prem per accounts in 'accounts'.  
 Expected output: One row per `account_id` with:
 - `has_active_cloud` (1 or 0)
