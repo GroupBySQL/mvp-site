@@ -184,6 +184,19 @@ main > section.panel:first-child pre.ascii{ font-size: var(--schema-font); }
   <script>
     const bust = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + Date.now();
 
+  function extractFirstSelect(sql) {
+    // remove block comments /* ... */
+    let s = sql.replace(/\/\*[\s\S]*?\*\//g, '');
+    // remove line comments that start with -- at the start of a line
+    s = s.replace(/(^|\n)\s*--.*(?=\n|$)/g, '$1');
+    // split into statements by semicolon
+    const parts = s.split(';').map(p => p.trim()).filter(Boolean);
+    if (!parts.length) return '';
+    // prefer the first that begins with SELECT, else fall back to the first
+    const stmt = parts.find(p => /^select/i.test(p)) || parts[0];
+    return stmt.trim();
+  }
+    
     let SQL, db, cm = null;
     const APP = { challenges: [], current:null, seedSQL:'', graderReady:false, grader:null };
     const PROGRESS = { '1':false, '2':false, '3':false, 'bonus':false };
