@@ -463,10 +463,15 @@ main > section.panel:first-child pre.ascii{ font-size: var(--schema-font); }
       if (!sqliteModeOn()){ els.gradeStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.'; els.gradeStatus.className='warn'; return; }
       try{
         els.gradeStatus.textContent='Grading…'; els.gradeStatus.className='muted'; els.gradeDiff.innerHTML='';
-        const userSQL = getSQL().trim();
-        if (!/^select/i.test(userSQL)){ els.gradeStatus.textContent='Only SELECT queries can be submitted.'; els.gradeStatus.className='warn'; return; }
-        const stageId = els.stageSelect.value || '1';
-        const r = await APP.grader.check(stageId, userSQL, APP.seedSQL, SQL);
+const userSQLRaw = getSQL().trim();
+const userSQL = extractFirstSelect(userSQLRaw);
+if (!userSQL || !/^select/i.test(userSQL)){
+  els.gradeStatus.textContent = 'Only SELECT queries can be submitted.';
+  els.gradeStatus.className = 'warn';
+  return;
+}
+const stageId = els.stageSelect.value || '1';
+const r = await APP.grader.check(stageId, userSQL, APP.seedSQL, SQL);
         if (r && r.ok){
           els.gradeStatus.textContent = r.status || '✅ Passed!'; els.gradeStatus.className='ok'; els.gradeDiff.innerHTML = r.diffHTML || '';
           PROGRESS[stageId] = true;
