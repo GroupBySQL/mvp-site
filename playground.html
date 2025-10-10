@@ -416,12 +416,29 @@ main > section.panel:first-child pre.ascii{ font-size: var(--schema-font); }
         APP.graderReady=false; APP.grader=null;
         if (meta.grader){ await loadGrader(meta.grader); }
 
-        // If grader provides parts labels, use them in the selector
-        if (APP.grader && Array.isArray(APP.grader.parts)){
-          els.stageSelect.innerHTML = APP.grader.parts.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
-        } else {
-          els.stageSelect.innerHTML = `<option value="1">Stage 1</option><option value="2">Stage 2</option><option value="3">Stage 3</option><option value="bonus">Bonus</option>`;
-        }
+function setupStageSelector() {
+  let parts = [];
+  if (APP.grader && Array.isArray(APP.grader.parts) && APP.grader.parts.length) {
+    parts = APP.grader.parts.map(p => ({
+      id: String(p.id),
+      label: p.label || p.name || String(p.id)
+    }));
+  } else {
+    // fallback (won’t be used if grader provides parts)
+    parts = [
+      { id: '1',     label: 'Stage 1' },
+      { id: '2',     label: 'Stage 2' },
+      { id: '3',     label: 'Stage 3' },
+      { id: 'bonus', label: 'Bonus'   }
+    ];
+  }
+
+  APP.graderPartIds = new Set(parts.map(p => p.id));
+  els.stageSelect.innerHTML = parts.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+}
+setupStageSelector();
+
+setControlsEnabled(true);
 
         setControlsEnabled(true);
       }catch(e){ els.results.innerHTML = '<span class="warn">Load error: '+e.message+'</span>'; }
