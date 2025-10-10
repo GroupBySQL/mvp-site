@@ -88,13 +88,6 @@ main > section.panel:first-child pre.ascii{ font-size: var(--schema-font); }
 #results th{ font-size: var(--result-th); }
 #results th, #results td{ padding: var(--cell-pad-y) var(--cell-pad-x); }
 #results .col-idx{ width: 44px; } /* slimmer row index column */
-  
-  
-  
-  
-  
-  
-  
   </style>
 
   <!-- CodeMirror -->
@@ -184,18 +177,14 @@ main > section.panel:first-child pre.ascii{ font-size: var(--schema-font); }
   <script>
     const bust = (u) => u + (u.includes('?') ? '&' : '?') + 'v=' + Date.now();
 
-  function extractFirstSelect(sql) {
-    // remove block comments /* ... */
-    let s = sql.replace(/\/\*[\s\S]*?\*\//g, '');
-    // remove line comments that start with -- at the start of a line
-    s = s.replace(/(^|\n)\s*--.*(?=\n|$)/g, '$1');
-    // split into statements by semicolon
-    const parts = s.split(';').map(p => p.trim()).filter(Boolean);
-    if (!parts.length) return '';
-    // prefer the first that begins with SELECT, else fall back to the first
-    const stmt = parts.find(p => /^select/i.test(p)) || parts[0];
-    return stmt.trim();
-  }
+    function extractFirstSelect(sql) {
+      let s = sql.replace(/\/\*[\s\S]*?\*\//g, '');
+      s = s.replace(/(^|\n)\s*--.*(?=\n|$)/g, '$1');
+      const parts = s.split(';').map(p => p.trim()).filter(Boolean);
+      if (!parts.length) return '';
+      const stmt = parts.find(p => /^select/i.test(p)) || parts[0];
+      return stmt.trim();
+    }
     
     let SQL, db, cm = null;
     const APP = { challenges: [], current:null, seedSQL:'', graderReady:false, grader:null };
@@ -276,62 +265,61 @@ main > section.panel:first-child pre.ascii{ font-size: var(--schema-font); }
 
     // Build collapsible accordions from markdown headings
     function buildAccordions(){
-    const host = els.question;
-    const nodes = Array.from(host.childNodes);
-    const container = document.createElement('div');
+      const host = els.question;
+      const nodes = Array.from(host.childNodes);
+      const container = document.createElement('div');
 
-    const isHeading = n => n.nodeType === 1 && /^H[1-4]$/.test(n.tagName);
-    const isStageTitle = txt => {
-      const s = txt.trim().toLowerCase();
-      return /^stage\s*\d+/.test(s)
-          || /^bonus\s*stage/.test(s)
-          || /^brief\s+your\s+executive/.test(s);
-    };
+      const isHeading = n => n.nodeType === 1 && /^H[1-4]$/.test(n.tagName);
+      const isStageTitle = txt => {
+        const s = txt.trim().toLowerCase();
+        return /^stage\s*\d+/.test(s)
+            || /^bonus\s*stage/.test(s)
+            || /^brief\s+your\s+executive/.test(s);
+      };
 
-    let current = null;
-    let foundAny = false;
+      let current = null;
+      let foundAny = false;
 
-    function startSection(title){
-      const det = document.createElement('details');
-      det.className = 'acc';
-      if (/^stage\s*1/i.test(title)) det.open = true;             // Stage 1 starts open
-      if (/brief your executive/i.test(title)) det.classList.add('brief','locked'); // Brief locked until Stage 3
+      function startSection(title){
+        const det = document.createElement('details');
+        det.className = 'acc';
+        if (/^stage\s*1/i.test(title)) det.open = true;
+        if (/brief your executive/i.test(title)) det.classList.add('brief','locked');
 
-      const sum = document.createElement('summary');
-      sum.innerHTML = `${title} <span class="hint">${/brief your executive/i.test(title) ? 'Unlocks after Stage 3' : 'Click to expand'}</span>`;
-      det.appendChild(sum);
+        const sum = document.createElement('summary');
+        sum.innerHTML = `${title} <span class="hint">${/brief your executive/i.test(title) ? 'Unlocks after Stage 3' : 'Click to expand'}</span>`;
+        det.appendChild(sum);
 
-      const body = document.createElement('div');
-      det.appendChild(body);
+        const body = document.createElement('div');
+        det.appendChild(body);
 
-      current = { wrapper: det, body };
-      foundAny = true;
-    }
-    function flush(){ if (current){ container.appendChild(current.wrapper); current = null; } }
-
-    for (const node of nodes){
-      if (isHeading(node) && isStageTitle(node.textContent)){
-        flush();
-        startSection(node.textContent);
-        // skip copying the heading itself
-        continue;
+        current = { wrapper: det, body };
+        foundAny = true;
       }
-      if (current) current.body.appendChild(node.cloneNode(true));
-      else container.appendChild(node.cloneNode(true));
-    }
-    flush();
+      function flush(){ if (current){ container.appendChild(current.wrapper); current = null; } }
 
-    if (foundAny){
-      host.innerHTML = '';
-      host.appendChild(container);
+      for (const node of nodes){
+        if (isHeading(node) && isStageTitle(node.textContent)){
+          flush();
+          startSection(node.textContent);
+          continue;
+        }
+        if (current) current.body.appendChild(node.cloneNode(true));
+        else container.appendChild(node.cloneNode(true));
+      }
+      flush();
 
-      // Prevent expanding locked "Brief" until unlocked
-      host.addEventListener('click', (e)=>{
-        const details = e.target.closest('details.acc.brief.locked');
-        if (details && e.target.closest('summary')) e.preventDefault();
-      });
+      if (foundAny){
+        host.innerHTML = '';
+        host.appendChild(container);
+
+        // Prevent expanding locked "Brief" until unlocked
+        host.addEventListener('click', (e)=>{
+          const details = e.target.closest('details.acc.brief.locked');
+          if (details && e.target.closest('summary')) e.preventDefault();
+        });
+      }
     }
-  }
 
     function unlockBrief(){
       const brief = els.question.querySelector('details.acc.brief');
@@ -341,6 +329,59 @@ main > section.panel:first-child pre.ascii{ font-size: var(--schema-font); }
         if (hint) hint.textContent = 'Click to expand';
       }
     }
+
+    /* -------- NEW HELPERS: stage selector + fallback stage checker -------- */
+
+    function setupStageSelectorFromGrader() {
+      let parts = [];
+      if (APP.grader && Array.isArray(APP.grader.parts) && APP.grader.parts.length) {
+        parts = APP.grader.parts.map(p => ({
+          id: String(p.id),
+          label: p.label || p.name || String(p.id)
+        }));
+      } else {
+        parts = [
+          { id: '1',     label: 'Stage 1' },
+          { id: '2',     label: 'Stage 2' },
+          { id: '3',     label: 'Stage 3' },
+          { id: 'bonus', label: 'Bonus'   }
+        ];
+      }
+      APP.graderPartIds = new Set(parts.map(p => p.id));
+      els.stageSelect.innerHTML = parts.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
+    }
+
+    async function checkWithFallbackStageIds(stageId, sql) {
+      const cands = [stageId];
+
+      if (stageId === '1') cands.push('1A', 'stage1', 'S1');
+      if (stageId === '2') cands.push('2B', 'stage2', 'S2', '2');
+      if (stageId === '3') cands.push('stage3', 'S3', '3');
+      if (stageId === 'bonus') cands.push('B', 'bonus', 'extra');
+
+      if (APP.grader && Array.isArray(APP.grader.parts)) {
+        for (const p of APP.grader.parts) {
+          const pid = String(p.id);
+          if (!cands.includes(pid)) cands.push(pid);
+        }
+      }
+
+      let last = null;
+      for (const id of cands) {
+        try {
+          const r = await APP.grader.check(id, sql, APP.seedSQL, SQL);
+          last = r;
+          const msg = String((r && (r.status || r.message)) || '').toLowerCase();
+          const looksUnknown = msg.includes('unknown') && msg.includes('stage');
+          if (!looksUnknown) return { id, r };
+        } catch (e) {
+          last = { ok:false, status: e.message || 'error' };
+        }
+      }
+      return { id: cands[0], r: last };
+    }
+
+    /* ------------------------------- Boot -------------------------------- */
 
     async function boot(){
       try{
@@ -400,7 +441,7 @@ main > section.panel:first-child pre.ascii{ font-size: var(--schema-font); }
         els.challengeTitle.textContent = meta.order ? `Challenge ${meta.order}: ${meta.title}` : (meta.title || 'Workspace');
         const html = DOMPurify.sanitize(marked.parse(desc || 'No description provided.'));
         els.question.innerHTML = html;
-        buildAccordions(); // make Stage 1/2/3/Bonus/Brief collapsible
+        buildAccordions();
 
         setSQL(`-- Write your SQL solution below:
 `);
@@ -416,29 +457,8 @@ main > section.panel:first-child pre.ascii{ font-size: var(--schema-font); }
         APP.graderReady=false; APP.grader=null;
         if (meta.grader){ await loadGrader(meta.grader); }
 
-function setupStageSelector() {
-  let parts = [];
-  if (APP.grader && Array.isArray(APP.grader.parts) && APP.grader.parts.length) {
-    parts = APP.grader.parts.map(p => ({
-      id: String(p.id),
-      label: p.label || p.name || String(p.id)
-    }));
-  } else {
-    // fallback (won’t be used if grader provides parts)
-    parts = [
-      { id: '1',     label: 'Stage 1' },
-      { id: '2',     label: 'Stage 2' },
-      { id: '3',     label: 'Stage 3' },
-      { id: 'bonus', label: 'Bonus'   }
-    ];
-  }
-
-  APP.graderPartIds = new Set(parts.map(p => p.id));
-  els.stageSelect.innerHTML = parts.map(p => `<option value="${p.id}">${p.label}</option>`).join('');
-}
-setupStageSelector();
-
-setControlsEnabled(true);
+        // Build stage selector from grader (or fallback)
+        setupStageSelectorFromGrader();
 
         setControlsEnabled(true);
       }catch(e){ els.results.innerHTML = '<span class="warn">Load error: '+e.message+'</span>'; }
@@ -480,25 +500,22 @@ setControlsEnabled(true);
       if (!sqliteModeOn()){ els.gradeStatus.textContent='Checks run on SQLite. Switch Language to "SQL (SQLite engine)" to validate.'; els.gradeStatus.className='warn'; return; }
       try{
         els.gradeStatus.textContent='Grading…'; els.gradeStatus.className='muted'; els.gradeDiff.innerHTML='';
-const userSQLRaw = getSQL().trim();
-const userSQL = extractFirstSelect(userSQLRaw);
-if (!userSQL || !/^select/i.test(userSQL)){
-  els.gradeStatus.textContent = 'Only SELECT queries can be submitted.';
-  els.gradeStatus.className = 'warn';
-  return;
-}
-let stageId = els.stageSelect.value;
-if (!stageId || (APP.graderPartIds && !APP.graderPartIds.has(stageId))) {
-  const first = APP.graderPartIds ? [...APP.graderPartIds][0] : '1';
-  stageId = first;
-}
+        const userSQLRaw = getSQL().trim();
+        const userSQL = extractFirstSelect(userSQLRaw);
+        if (!userSQL || !/^select/i.test(userSQL)){
+          els.gradeStatus.textContent = 'Only SELECT queries can be submitted.';
+          els.gradeStatus.className = 'warn';
+          return;
+        }
+        let stageId = els.stageSelect.value || '1';
 
-// Now call the grader with a valid id
-const r = await APP.grader.check(stageId, userSQL, APP.seedSQL, SQL);
+        // Use fallback checker so “Unknown stage” is handled
+        const { id: resolvedId, r } = await checkWithFallbackStageIds(stageId, userSQL);
+
         if (r && r.ok){
           els.gradeStatus.textContent = r.status || '✅ Passed!'; els.gradeStatus.className='ok'; els.gradeDiff.innerHTML = r.diffHTML || '';
-          PROGRESS[stageId] = true;
-          if (stageId === '3') unlockBrief(); // Brief unlocks after Stage 3
+          PROGRESS[resolvedId] = true;
+          if (resolvedId === '3') unlockBrief();
         } else {
           els.gradeStatus.textContent = (r && r.status) ? r.status : '❌ Not correct.'; els.gradeStatus.className='warn'; els.gradeDiff.innerHTML = (r && r.diffHTML) ? r.diffHTML : '';
         }
