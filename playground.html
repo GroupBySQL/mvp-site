@@ -487,7 +487,13 @@ if (!userSQL || !/^select/i.test(userSQL)){
   els.gradeStatus.className = 'warn';
   return;
 }
-const stageId = els.stageSelect.value || '1';
+let stageId = els.stageSelect.value;
+if (!stageId || (APP.graderPartIds && !APP.graderPartIds.has(stageId))) {
+  const first = APP.graderPartIds ? [...APP.graderPartIds][0] : '1';
+  stageId = first;
+}
+
+// Now call the grader with a valid id
 const r = await APP.grader.check(stageId, userSQL, APP.seedSQL, SQL);
         if (r && r.ok){
           els.gradeStatus.textContent = r.status || '✅ Passed!'; els.gradeStatus.className='ok'; els.gradeDiff.innerHTML = r.diffHTML || '';
