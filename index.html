@@ -6,14 +6,18 @@
   <title>GroupBySQL — SQL Dojo</title>
   <style>
     :root{
+      /* Palette from your logo */
+      --blue:#0b57b3;        /* royal blue (logo drop) */
+      --blue-d:#084692;      /* darker hover */
+      --gold:#f2b24a;        /* warm gold (logo “g”) */
+
       --bg:#ffffff;
-      --text:#111827;        /* near-black */
-      --muted:#6b7280;       /* gray-500 */
-      --accent:#0ea5e9;      /* airy blue */
-      --accent-d:#0284c7;    /* darker blue */
-      --border:#e5e7eb;      /* gray-200 */
-      --maxw: 920px;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --maxw:1000px;
     }
+
     *{ box-sizing:border-box }
     html,body{ height:100% }
     body{
@@ -22,84 +26,84 @@
       line-height:1.55;
     }
 
-    /* Header (brand only) */
+    /* Header: centered logo + big wordmark */
     header{
       border-bottom:1px solid var(--border);
       background:#fff;
     }
-    .wrap{
-      max-width:var(--maxw); margin:0 auto; padding:20px 16px;
-    }
+    .wrap{ max-width:var(--maxw); margin:0 auto; padding:28px 16px; }
+
     .brand{
-      font-size: clamp(36px, 6vw, 64px);
-      font-weight: 800;
-      letter-spacing: -0.02em;
+      display:flex; align-items:center; gap:16px;
+      justify-content:center;
     }
-    .brand small{
-      display:block;
-      font-size: clamp(12px, 1.8vw, 14px);
-      font-weight: 500;
-      color: var(--muted);
-      margin-top:4px;
+    .brand img{
+      width:64px; height:64px; object-fit:contain;
+    }
+    .title{
+      font-size: clamp(40px, 6.5vw, 72px);
+      font-weight:800; letter-spacing:-0.02em;
+      line-height:1;
+    }
+    .title .by{ color:var(--blue) }
+    .tag{
+      text-align:center; margin-top:8px; color:var(--muted);
+      font-size:14px; font-weight:500;
     }
 
-    /* Hero */
+    /* Hero (copy + CTA) */
     .hero{
-      max-width:var(--maxw); margin:0 auto; padding:40px 16px 24px;
+      max-width:var(--maxw); margin:0 auto; padding:40px 16px 20px;
+      text-align:center;
     }
     .hero p{
-      font-size: clamp(16px, 2.2vw, 20px);
-      margin: 0 0 10px;
+      font-size:clamp(16px, 2.2vw, 20px); margin: 4px 0;
     }
-    .cta{
-      margin-top:22px;
-    }
+    .cta{ margin-top:22px; }
     .cta a{
-      display:inline-block;
-      text-decoration:none;
-      background: var(--accent);
-      color:#fff; font-weight:700;
-      padding:12px 18px;
-      border-radius:10px;
+      display:inline-block; text-decoration:none;
+      background:var(--blue); color:#fff; font-weight:700;
+      padding:12px 20px; border-radius:10px;
+      box-shadow: 0 2px 0 0 var(--blue-d);
     }
-    .cta a:hover{ background: var(--accent-d); }
-    .cta small{
-      display:block; color:var(--muted); margin-top:8px; font-size:13px;
-    }
+    .cta a:hover{ background:var(--blue-d); }
+    .cta small{ display:block; color:var(--muted); margin-top:8px; font-size:13px; }
 
-    /* Mission (bottom) */
+    /* Mission band at the bottom */
     .mission{
       border-top:1px solid var(--border);
-      background:#fafafa;
-      margin-top:48px;
+      background:linear-gradient(90deg, rgba(242,178,74,.12), rgba(11,87,179,.08));
+      margin-top:56px;
     }
     .mission .wrap{ padding:28px 16px; }
     .mission h2{
-      margin:0 0 10px;
-      font-size: clamp(20px, 3vw, 28px);
+      margin:0 0 10px; text-align:center;
+      font-size:clamp(22px,3.2vw,28px);
       letter-spacing:-0.01em;
     }
-    .mission p{ margin:6px 0; color:#1f2937; }
-    .mission p:last-child{ margin-bottom:0 }
+    .mission p{
+      margin:6px auto; color:#1f2937; max-width:800px; text-align:center;
+    }
 
     /* Footer */
     footer{
-      border-top:1px solid var(--border);
-      background:#fff;
+      border-top:1px solid var(--border); background:#fff;
     }
     footer .wrap{
       padding:14px 16px; color:var(--muted); font-size:13px;
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-      flex-wrap:wrap;
+      display:flex; justify-content:center; align-items:center;
     }
   </style>
 </head>
 <body>
   <header>
     <div class="wrap">
-      <div class="brand">GroupBySQL
-        <small>Structured like a game. Built for real analysts.</small>
+      <div class="brand">
+        <!-- Update src if you place the logo elsewhere -->
+        <img src="G.png" alt="GroupBySQL logo" />
+        <div class="title">Group<b class="by">By</b>SQL</div>
       </div>
+      <div class="tag">Structured like a game. Built for real analysts.</div>
     </div>
   </header>
 
@@ -107,7 +111,6 @@
     <section class="hero">
       <p><strong>Real work prompts—manager-style scenarios that move the business.</strong></p>
       <p>Step by step: think, query, validate. Skip the sprawling SQL.</p>
-
       <div class="cta">
         <a href="/playground.html">Start your first challenge</a>
         <small>(enter the SQL Dojo)</small>
@@ -124,15 +127,9 @@
   </main>
 
   <footer>
-    <div class="wrap">
-      <div>© <span id="y"></span> GroupBySQL</div>
-      <div>All rights reserved.</div>
-    </div>
+    <div class="wrap">© <span id="y"></span> GroupBySQL</div>
   </footer>
 
-  <script>
-    // current year in footer
-    document.getElementById('y').textContent = new Date().getFullYear();
-  </script>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
 </body>
 </html>
