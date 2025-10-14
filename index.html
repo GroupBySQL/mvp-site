@@ -1,105 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>GroupBySQL — SQL Dojo</title>
-  <style>
-    :root{
-      /* Palette from your logo */
-      --blue:#0b57b3;        /* royal blue (logo drop) */
-      --blue-d:#084692;      /* darker hover */
-      --gold:#f2b24a;        /* warm gold (logo “g”) */
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GroupBySQL — SQL Dojo</title>
+<style>
+  :root{
+    /* Logo-inspired palette */
+    --blue:#0b57b3;        /* royal blue */
+    --blue-d:#084692;      /* darker hover */
+    --gold:#f2b24a;        /* warm gold */
 
-      --bg:#ffffff;
-      --text:#111827;
-      --muted:#6b7280;
-      --border:#e5e7eb;
-      --maxw:1000px;
-    }
+    --text:#0f172a;        /* slate-900 */
+    --muted:#475569;       /* slate-600 */
+    --panel:#ffffff;       /* surface */
+    --border:#e5e7eb;
 
-    *{ box-sizing:border-box }
-    html,body{ height:100% }
-    body{
-      margin:0; background:var(--bg); color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      line-height:1.55;
-    }
+    --maxw:1000px;
+  }
 
-    /* Header: centered logo + big wordmark */
-    header{
-      border-bottom:1px solid var(--border);
-      background:#fff;
-    }
-    .wrap{ max-width:var(--maxw); margin:0 auto; padding:28px 16px; }
+  *{ box-sizing:border-box }
+  html,body{ height:100% }
+  body{
+    margin:0;
+    color:var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    line-height:1.55;
+    /* Use the mission gradient for the whole page */
+    background: linear-gradient(90deg, rgba(242,178,74,.10), rgba(11,87,179,.08));
+    display:flex;
+    flex-direction:column; /* keeps footer/mission at bottom */
+    min-height:100dvh;
+  }
 
-    .brand{
-      display:flex; align-items:center; gap:16px;
-      justify-content:center;
-    }
-    .brand img{
-      width:64px; height:64px; object-fit:contain;
-    }
-    .title{
-      font-size: clamp(40px, 6.5vw, 72px);
-      font-weight:800; letter-spacing:-0.02em;
-      line-height:1;
-    }
-    .title .by{ color:var(--blue) }
-    .tag{
-      text-align:center; margin-top:8px; color:var(--muted);
-      font-size:14px; font-weight:500;
-    }
+  /* Header */
+  header{
+    background:transparent; /* let gradient show */
+    border-bottom:1px solid rgba(229,231,235,.6);
+  }
+  .wrap{ max-width:var(--maxw); margin:0 auto; padding:22px 16px; }
+  .brand{
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    text-align:center;
+  }
+  .brand img{ width:64px; height:64px; object-fit:contain }
+  .title{
+    font-size: clamp(40px, 7vw, 72px);
+    font-weight:800; letter-spacing:-0.02em; line-height:1;
+  }
+  .title .by{ color:var(--blue) }
+  .tag{ margin-top:6px; color:var(--muted); font-size:14px; text-align:center }
 
-    /* Hero (copy + CTA) */
-    .hero{
-      max-width:var(--maxw); margin:0 auto; padding:40px 16px 20px;
-      text-align:center;
-    }
-    .hero p{
-      font-size:clamp(16px, 2.2vw, 20px); margin: 4px 0;
-    }
-    .cta{ margin-top:22px; }
-    .cta a{
-      display:inline-block; text-decoration:none;
-      background:var(--blue); color:#fff; font-weight:700;
-      padding:12px 20px; border-radius:10px;
-      box-shadow: 0 2px 0 0 var(--blue-d);
-    }
-    .cta a:hover{ background:var(--blue-d); }
-    .cta small{ display:block; color:var(--muted); margin-top:8px; font-size:13px; }
+  /* Hero */
+  .hero{ flex:1 0 auto } /* grow to push mission to bottom if short */
+  .hero .wrap{ padding:40px 16px 8px; text-align:center; }
+  .hero p{ margin:8px 0; font-size:clamp(16px,2.4vw,20px); }
+  .cta{ margin-top:22px; }
+  .cta a{
+    display:inline-block; text-decoration:none;
+    background:var(--blue); color:#fff; font-weight:700;
+    padding:12px 20px; border-radius:10px;
+    box-shadow:0 2px 0 0 var(--blue-d);
+  }
+  .cta a:hover{ background:var(--blue-d); }
 
-    /* Mission band at the bottom */
-    .mission{
-      border-top:1px solid var(--border);
-      background:linear-gradient(90deg, rgba(242,178,74,.12), rgba(11,87,179,.08));
-      margin-top:56px;
-    }
-    .mission .wrap{ padding:28px 16px; }
-    .mission h2{
-      margin:0 0 10px; text-align:center;
-      font-size:clamp(22px,3.2vw,28px);
-      letter-spacing:-0.01em;
-    }
-    .mission p{
-      margin:6px auto; color:#1f2937; max-width:800px; text-align:center;
-    }
+  /* Mission at the bottom */
+  .mission{
+    border-top:1px solid rgba(229,231,235,.8);
+    background: rgba(255,255,255,.55); /* readable over gradient */
+    backdrop-filter: saturate(140%) blur(2px);
+  }
+  .mission .wrap{ padding:28px 16px; }
+  .mission h2{
+    margin:0 0 10px; text-align:center;
+    font-size:clamp(22px,3.2vw,28px); letter-spacing:-0.01em;
+  }
+  .mission p{
+    margin:6px auto; color:#1f2937; max-width:800px; text-align:center;
+  }
 
-    /* Footer */
-    footer{
-      border-top:1px solid var(--border); background:#fff;
-    }
-    footer .wrap{
-      padding:14px 16px; color:var(--muted); font-size:13px;
-      display:flex; justify-content:center; align-items:center;
-    }
-  </style>
+  /* Footer */
+  footer{
+    border-top:1px solid rgba(229,231,235,.8);
+    background: rgba(255,255,255,.7);
+  }
+  footer .wrap{
+    padding:14px 16px; color:#64748b; font-size:13px;
+    display:flex; justify-content:center; align-items:center;
+  }
+
+  /* Small devices tweaks */
+  @media (max-width:520px){
+    .brand img{ width:56px; height:56px }
+  }
+</style>
 </head>
 <body>
   <header>
     <div class="wrap">
       <div class="brand">
-        <!-- Update src if you place the logo elsewhere -->
         <img src="G.png" alt="GroupBySQL logo" />
         <div class="title">Group<b class="by">By</b>SQL</div>
       </div>
@@ -107,24 +106,24 @@
     </div>
   </header>
 
-  <main>
-    <section class="hero">
-      <p><strong>Real work prompts—manager-style scenarios that move the business.</strong></p>
-      <p>Step by step: think, query, validate. Skip the sprawling SQL.</p>
+  <main class="hero">
+    <div class="wrap">
+      <p><strong>SQL practices based on real work prompts—manager-style scenarios that move the business.</strong></p>
+      <p>Each challenge breaks down step by step: think, query, validate. Skip the sprawling SQL.</p>
       <div class="cta">
         <a href="/playground.html">Start your first challenge</a>
-        <small>(enter the SQL Dojo)</small>
       </div>
-    </section>
-
-    <section class="mission">
-      <div class="wrap">
-        <h2>Group by SQL. Grow together.</h2>
-        <p>Train on real business prompts, validate each step, and learn patterns you can reuse at work.</p>
-        <p>Explore a growing set of challenges across pricing, retention, churn, cost and more. The best part is to learn alongside a community that’s literally grouped by SQL.</p>
-      </div>
-    </section>
+    </div>
   </main>
+
+  <!-- Mission pinned to the bottom by flex layout -->
+  <section class="mission">
+    <div class="wrap">
+      <h2>Group by SQL. Grow together.</h2>
+      <p>Train on real business prompts, validate each step, and learn patterns you can reuse at work.</p>
+      <p>Explore a growing set of challenges across pricing, retention, churn, cost and more. The best part is learning alongside a community that’s literally grouped by SQL.</p>
+    </div>
+  </section>
 
   <footer>
     <div class="wrap">© <span id="y"></span> GroupBySQL</div>
