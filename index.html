@@ -209,21 +209,80 @@
 </head>
 <body>
   <!-- Header -->
-  <header>
-    <div class="wrap nav">
-      <a class="brand" href="./" id="brandLink" aria-label="GroupBySQL Home">
-        <!-- Teardrop “g” logo -->
-        <img src="./G.png?v=3" alt="GroupBySQL logo">
-        <span class="word"><span class="sr-only">GroupBy </span><b>SQL</b></span>
-      </a>
-      <nav class="menu" aria-label="Main" id="topNav">
-        <a href="./">Home</a>
-        <a href="./playground.html">Challenges</a>
-        <a href="./community.html">Community</a>
-        <a href="./about.html">About</a>
-      </nav>
-    </div>
-  </header>
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="./" id="brandLink" aria-label="GroupBySQL Home">
+      <span class="gmark" aria-hidden="true"></span>
+      <span class="word">
+        <span class="sr-only">GroupBy </span><b>SQL</b>
+      </span>
+    </a>
+    <nav class="menu" aria-label="Main" id="topNav">
+      <a href="./">Home</a>
+      <a href="./playground.html">Challenges</a>
+      <a href="./community.html">Community</a>
+      <a href="./about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+  /* === Proportional brand lockup === */
+:root{
+  /* keep your requested sizes; change here if you want larger */
+  --logo-h-desktop: 72px;
+  --logo-h-tablet:  56px;
+  --logo-h-phone:   48px;
+}
+
+/* Header spacing a touch tighter so the brand feels cohesive */
+.nav{ padding: 12px 0; }
+
+/* Brand row */
+.brand{
+  display:flex; align-items:center; gap:10px; min-width:0;
+}
+
+/* Teardrop “g” as background to ignore PNG’s internal padding */
+.gmark{
+  height: var(--logo-h-desktop);
+  width:  calc(var(--logo-h-desktop) * 0.82); /* tweak 0.78–0.88 to fit your glyph */
+  background: url("./G.png?v=6") center/contain no-repeat;
+  display:inline-block;
+}
+
+/* Wordmark scales with logo height so proportions stay consistent */
+.brand .word{
+  font-weight: 900;
+  letter-spacing: -0.01em;       /* reduce the wide feel you’re seeing */
+  color: var(--accent);          /* your deep blue */
+  line-height: 1;
+  font-size: calc(var(--logo-h-desktop) * 0.34); /* 0.32–0.36 usually looks right */
+  /* vertical nudge if needed (comment in/out):
+     transform: translateY(1px);
+  */
+}
+
+/* Tablet */
+@media (max-width: 960px){
+  .gmark{
+    height: var(--logo-h-tablet);
+    width:  calc(var(--logo-h-tablet) * 0.82);
+  }
+  .brand .word{
+    font-size: calc(var(--logo-h-tablet) * 0.34);
+  }
+}
+
+/* Phone */
+@media (max-width: 640px){
+  .gmark{
+    height: var(--logo-h-phone);
+    width:  calc(var(--logo-h-phone) * 0.82);
+  }
+  .brand .word{
+    font-size: calc(var(--logo-h-phone) * 0.34);
+  }
+}
 
   <!-- Hero -->
   <section class="hero">
