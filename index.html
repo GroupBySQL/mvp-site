@@ -21,25 +21,23 @@
   <style>
     :root{
       /* Brand */
-      --brand:#ffbd59;   /* orange pop */
-      --accent:#004aad;  /* deep blue */
+      --brand:#ffbd59;   /* orange */
+      --accent:#004aad;  /* blue */
       /* Base */
       --bg:#ffffff;
-      --text:#1f2937;     /* gray-800 */
-      --muted:#6b7280;    /* gray-500 */
-      --line:#e5e7eb;     /* gray-200 */
-      --soft:#f9fafb;     /* light bg */
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --soft:#f9fafb;
       --maxw:1200px;
-      --radius:14px;
+      --radius:16px;
       --shadow:0 6px 18px rgba(0,0,0,.06);
-      --code:#0b1020;
-      --code-bg:#f5f8ff;
 
-      /* Proportional brand lockup sizes */
+      /* Brand lockup */
       --logo-h-desktop: 96px;
       --logo-h-tablet:  80px;
       --logo-h-phone:   64px;
-      --logo-zoom: 1.8;
+      --logo-zoom: 1.9;  /* zooms SVG to counter any empty viewBox space */
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -47,7 +45,7 @@
       margin:0; background:var(--bg); color:var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
       line-height:1.6; font-size:16px;
-      text-rendering:optimizeLegibility; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     }
     a{ color:var(--accent); text-decoration:none }
     a:hover{ text-decoration:underline }
@@ -65,16 +63,14 @@
     }
 
     /* Brand lockup */
-    .brand{
-      display:flex; align-items:center; gap:10px; min-width:0;
-    }
+    .brand{ display:flex; align-items:center; gap:10px; min-width:0; }
     .gmark{
       height: var(--logo-h-desktop);
-      width:  calc(var(--logo-h-desktop) * 0.9);
-      background: url("./G.svg") 
+      width:  calc(var(--logo-h-desktop) * 0.95);
+      background-image: url("./G.svg");  /* use your SVG */
       background-repeat: no-repeat;
       background-position: center;
-      background-size: calc(var(--logo-zoom) * 100%) auto; /* <- zooms in */
+      background-size: calc(var(--logo-zoom) * 100%) auto; /* zoom in */
       display:inline-block;
     }
     .brand .word{
@@ -82,16 +78,16 @@
       letter-spacing: -0.01em;
       color: var(--accent);
       line-height: 1;
-      font-size: calc(var(--logo-h-desktop) * 0.34);
+      font-size: calc(var(--logo-h-desktop) * 0.36); /* scales with logo */
     }
     .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
     @media (max-width: 960px){
       .gmark{ height: var(--logo-h-tablet); width: calc(var(--logo-h-tablet) * 0.95); }
-      .brand .word{ font-size: calc(var(--logo-h-tablet) * 0.34); }
+      .brand .word{ font-size: calc(var(--logo-h-tablet) * 0.36); }
     }
     @media (max-width: 640px){
       .gmark{ height: var(--logo-h-phone); width: calc(var(--logo-h-phone) * 0.95); }
-      .brand .word{ font-size: calc(var(--logo-h-phone) * 0.34); }
+      .brand .word{ font-size: calc(var(--logo-h-phone) * 0.36); }
     }
 
     .menu{ display:flex; align-items:center; gap:20px; flex-wrap:wrap }
@@ -125,83 +121,57 @@
       max-width:60ch;
     }
 
-    /* Preview box (replaces previous CTA/buttons) */
-.previewbox{
-  margin:26px auto 0; max-width:860px; text-align:left;
-  background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow);
-  overflow:hidden;
-  font-size:90%;               /* ↓ shrink everything inside by ~10% */
-}
-.previewbox header{
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  padding:12px 16px;           /* slightly tighter */
-  border-bottom:1px solid var(--line);
-}
-.previewbox header h3{
-  margin:0; font-size:16px;    /* was 18px; scales with the 90% too */
-  color:var(--accent); font-weight:800;
-}
-.previewbox .content{ padding:14px 16px }
-.previewbox .actions{
-  display:flex; gap:10px; justify-content:flex-end; padding:0 16px 14px;
-}
-.openlink{
-  display:inline-flex; gap:10px; align-items:center; justify-content:center;
-  border-radius:12px; padding:10px 16px; font-weight:800;
-  border:1px solid var(--accent); color:#fff; background:var(--accent);
-  text-decoration:none;
-}
-.openlink:hover{ filter:brightness(0.95); text-decoration:none }
-
-/* SQL teaser inside preview */
-.codewrap{
-  margin:12px 0 0; max-width:100%; text-align:left;
-  background:var(--code-bg); border:1px solid #dfe7ff; border-radius:14px; box-shadow:var(--shadow);
-  padding:14px 16px; overflow:auto;
-}
-pre{ margin:0; font-size:13px; color:var(--code) } /* nudged down a bit */
-.badge{
-  display:inline-block; font-size:10px; font-weight:700; color:#0b2545;
-  background:#fff; border:1px solid #dfe7ff; border-radius:8px; padding:2px 7px; margin-bottom:8px;
-}
+    /* Preview box (no SQL blocks; smaller text) */
+    .previewbox{
+      margin:26px auto 0; max-width:800px; text-align:left;
+      background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow);
+      overflow:hidden; font-size:90%;
+    }
+    .previewbox header{
+      padding:12px 16px; border-bottom:1px solid var(--line);
+    }
+    .previewbox header h3{
+      margin:0; font-size:16px; color:var(--accent); font-weight:800;
+    }
+    .previewbox .content{ padding:14px 16px }
+    .pmq{ margin:0; font-size:0.95rem; color:#0b2545 }
+    .previewbox .actions{
+      display:flex; gap:10px; justify-content:center; padding:12px 16px 16px; /* centered buttons */
+    }
+    .btn{
+      display:inline-flex; gap:10px; align-items:center; justify-content:center;
+      border-radius:12px; padding:12px 18px; font-weight:800; text-decoration:none;
+    }
+    .btn.primary{ background:var(--brand); color:#1b1b1b; border:1px solid rgba(0,0,0,.06); }
+    .btn.primary:hover{ filter:brightness(1.05); text-decoration:none }
+    .btn.outline{ background:#fff; color:var(--accent); border:1px solid var(--accent); }
+    .btn.outline:hover{ background:rgba(0,74,173,.06); text-decoration:none }
 
     /* Features */
     .features{ padding:54px 0 }
-    .features .grid{
-      display:grid; gap:22px;
-      grid-template-columns: repeat(12, 1fr);
-    }
+    .features .grid{ display:grid; gap:22px; grid-template-columns: repeat(12, 1fr); }
     .card{
-      grid-column: span 4;
-      background:#fff; border:1px solid var(--line);
-      border-radius:var(--radius); padding:22px;
-      box-shadow:var(--shadow);
+      grid-column: span 4; background:#fff; border:1px solid var(--line);
+      border-radius:var(--radius); padding:22px; box-shadow:var(--shadow);
     }
     .card h3{ margin:0 0 6px; font-size:20px; color:var(--accent); font-weight:800 }
     .card p{ margin:0; color:var(--text); opacity:.95 }
-    .icon{
-      width:30px; height:30px; display:inline-block; margin-bottom:12px;
-      color:var(--accent);
-    }
-    /* Reusable Patterns icon in BLUE now (use default .icon) */
+    .icon{ width:30px; height:30px; display:inline-block; margin-bottom:12px; color:var(--accent); }
+    /* Reusable Patterns icon is BLUE now (default .icon) */
 
     /* Mission */
-    .mission{
-      background:#fff; padding:56px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
-    }
+    .mission{ background:#fff; padding:56px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
     .mission .inner{ max-width:900px; margin:0 auto; text-align:center; }
     .mission h2{ margin:0 0 10px; color:var(--brand); font-size:clamp(24px,3.2vw,32px); font-weight:800; letter-spacing:-0.02em; } /* ORANGE */
     .mission p{ margin:0; color:var(--text); opacity:.95 }
 
     /* Footer */
-    footer{
-      background:#fff; border-top:1px solid var(--line); padding:24px 0; text-align:center; color:var(--text);
-    }
+    footer{ background:#fff; border-top:1px solid var(--line); padding:24px 0; text-align:center; color:var(--text); }
     footer .links{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin:10px 0 6px }
     footer a{ color:var(--accent); text-decoration:none; font-weight:700 }
     footer a:hover{ text-decoration:underline }
 
-    /* Responsive cards */
+    /* Responsive features */
     @media (max-width: 960px){ .card{ grid-column: span 6; } }
     @media (max-width: 640px){
       .menu{ gap:12px }
@@ -234,31 +204,18 @@ pre{ margin:0; font-size:13px; color:var(--code) } /* nudged down a bit */
       <h1>Master SQL with Real Challenges</h1>
       <p>Manager-style prompts in pricing, retention, churn, and cost. Think → query → validate — and learn patterns you can reuse at work.</p>
 
-      <!-- PREVIEW BOX replaces old CTA/buttons -->
+      <!-- PREVIEW BOX (PM question only) -->
       <div class="previewbox" id="previewBox">
         <header>
-          <h3>Preview: OS Share by Customer (Latest Active Key)</h3>
+          <h3>Preview: Challenge 1 — OS Share by Customer (Latest Active Key)</h3>
         </header>
         <div class="content">
-          <p><strong>Scenario:</strong> Your PM asks, “What OS do our customers most recently activate on?” Return customers by OS using each customer’s latest active key.</p>
-
-          <div class="codewrap">
-            <span class="badge">Starter Tables</span>
-            <pre><code>keys(customer_id, os, activated_at, status)
--- status ∈ {'active','revoked'}</code></pre>
-          </div>
-
-          <div class="codewrap">
-            <span class="badge">Expected Output (shape)</span>
-            <pre><code>os      customers
-------  ---------
-iOS     142
-Android  96
-Other    11</code></pre>
-          </div>
+          <p class="pmq"><strong>PM Question:</strong> “What OS do our customers most recently activate on?” Return customers by OS using each customer’s latest active key.</p>
         </div>
         <div class="actions">
-          <a class="openlink" href="./playground.html" id="openPlayground">Open in Playground →</a>
+          <a class="btn primary" href="./playground.html" id="tryNowBtn">Try now!</a>
+          <!-- Update this href to your Dojo route/file -->
+          <a class="btn outline" href="./dojo.html" id="openDojoBtn">Open in SQL Dojo</a>
         </div>
       </div>
     </div>
@@ -287,7 +244,7 @@ Other    11</code></pre>
         </article>
 
         <article class="card">
-          <!-- Reusable Patterns icon in BLUE now (no .orange class) -->
+          <!-- Reusable Patterns icon stays BLUE (no orange class) -->
           <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M5 20V10h3v10H5zm5 0V6h3v14h-3zm5 0V3h3v17h-3z"/>
           </svg>
@@ -301,7 +258,7 @@ Other    11</code></pre>
   <!-- Mission -->
   <section class="mission">
     <div class="wrap inner">
-      <h2>Group by SQL. Grow Together.</h2> <!-- now orange via CSS above -->
+      <h2>Group by SQL. Grow Together.</h2> <!-- orange via CSS -->
       <p>
         Train on real business prompts, validate each step, and learn patterns you can reuse at work.
         Challenges are short, realistic, and designed to build confidence fast.
@@ -317,7 +274,6 @@ Other    11</code></pre>
         <a href="./terms.html">Terms</a>
         <a href="./privacy.html">Privacy</a>
         <a href="./contact.html">Contact</a>
-        <!-- socials -->
         <a href="https://x.com/" target="_blank" rel="noopener">X</a>
         <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a>
         <a href="https://discord.com/" target="_blank" rel="noopener">Discord</a>
@@ -325,7 +281,7 @@ Other    11</code></pre>
     </div>
   </footer>
 
-  <!-- Event logging -->
+  <!-- Lightweight event logging -->
   <script>
     const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL'; // <-- replace with your deployed Web App URL
 
@@ -357,19 +313,25 @@ Other    11</code></pre>
       if(window.gtag){ gtag('event','page_active_seconds', { value: secs }); }
     });
 
-    // Nav + open playground events
+    // Nav + CTA events
     document.getElementById('topNav')?.addEventListener('click', (e)=>{
       const a = e.target.closest('a'); if(!a) return;
-      logToSheet('nav_click', { label: a.getAttribute('href')||'' });
-      if(window.gtag){ gtag('event','nav_click', { label: a.getAttribute('href')||'' }); }
+      const label = a.getAttribute('href')||'';
+      logToSheet('nav_click', { label });
+      if(window.gtag){ gtag('event','nav_click', { label }); }
     });
     document.getElementById('brandLink')?.addEventListener('click', ()=>{
       logToSheet('nav_click', { label:'brand_home' });
       if(window.gtag){ gtag('event','nav_click', { label:'brand_home' }); }
     });
-    document.getElementById('openPlayground')?.addEventListener('click', ()=>{
-      logToSheet('start_challenge_from_preview');
-      if(window.gtag){ gtag('event','start_challenge_from_preview'); }
+
+    document.getElementById('tryNowBtn')?.addEventListener('click', ()=>{
+      logToSheet('try_now');
+      if(window.gtag){ gtag('event','try_now'); }
+    });
+    document.getElementById('openDojoBtn')?.addEventListener('click', ()=>{
+      logToSheet('open_sql_dojo');
+      if(window.gtag){ gtag('event','open_sql_dojo'); }
     });
   </script>
 </body>
