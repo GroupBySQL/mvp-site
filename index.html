@@ -32,8 +32,8 @@
       --maxw:1200px;
       --radius:14px;
       --shadow:0 6px 18px rgba(0,0,0,.06);
-      --code:#0b1020;     /* near-black for code */
-      --code-bg:#f5f8ff;  /* very light blue for code bg */
+      --code:#0b1020;
+      --code-bg:#f5f8ff;
 
       /* Proportional brand lockup sizes */
       --logo-h-desktop: 72px;
@@ -60,17 +60,16 @@
     }
     .nav{
       display:flex; align-items:center; justify-content:space-between; gap:16px;
-      padding:12px 0; /* tighter */
+      padding:12px 0;
     }
 
     /* Brand lockup */
     .brand{
       display:flex; align-items:center; gap:10px; min-width:0;
     }
-    /* Teardrop “g” as background to ignore PNG internal padding */
     .gmark{
       height: var(--logo-h-desktop);
-      width:  calc(var(--logo-h-desktop) * 0.9); /* tweak 0.78–0.88 if needed */
+      width:  calc(var(--logo-h-desktop) * 0.9);
       background: url("./G.svg") center/contain no-repeat;
       display:inline-block;
     }
@@ -79,27 +78,17 @@
       letter-spacing: -0.01em;
       color: var(--accent);
       line-height: 1;
-      font-size: calc(var(--logo-h-desktop) * 0.34); /* scales with logo */
-    }
-    @media (max-width: 960px){
-      .gmark{
-        height: var(--logo-h-tablet);
-        width:  calc(var(--logo-h-tablet) * 0.82);
-      }
-      .brand .word{
-        font-size: calc(var(--logo-h-tablet) * 0.34);
-      }
-    }
-    @media (max-width: 640px){
-      .gmark{
-        height: var(--logo-h-phone);
-        width:  calc(var(--logo-h-phone) * 0.82);
-      }
-      .brand .word{
-        font-size: calc(var(--logo-h-phone) * 0.34);
-      }
+      font-size: calc(var(--logo-h-desktop) * 0.34);
     }
     .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
+    @media (max-width: 960px){
+      .gmark{ height: var(--logo-h-tablet); width: calc(var(--logo-h-tablet) * 0.82); }
+      .brand .word{ font-size: calc(var(--logo-h-tablet) * 0.34); }
+    }
+    @media (max-width: 640px){
+      .gmark{ height: var(--logo-h-phone); width: calc(var(--logo-h-phone) * 0.82); }
+      .brand .word{ font-size: calc(var(--logo-h-phone) * 0.34); }
+    }
 
     .menu{ display:flex; align-items:center; gap:20px; flex-wrap:wrap }
     .menu a{
@@ -131,32 +120,33 @@
       font-size:clamp(18px,2.2vw,20px);
       max-width:60ch;
     }
-    .cta{
-      display:inline-flex; gap:12px; align-items:center; justify-content:center;
-      background:var(--brand); color:#1b1b1b; border-radius:12px;
-      padding:12px 22px; font-weight:800; letter-spacing:.2px; box-shadow:var(--shadow);
-      border:1px solid rgba(0,0,0,.04); transition:transform .06s ease, background .15s ease, box-shadow .15s ease;
-      position:relative; animation:pulse 2.2s ease-in-out infinite;
-    }
-    .cta:hover{ background:#ffc978; text-decoration:none; transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.10); }
-    .cta:active{ transform:translateY(0) }
-    .cta .dot{ width:8px; height:8px; border-radius:999px; background:var(--accent) }
 
-    .ghost{
+    /* Preview box (replaces previous CTA/buttons) */
+    .previewbox{
+      margin:26px auto 0; max-width:860px; text-align:left;
+      background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .previewbox header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:14px 18px; border-bottom:1px solid var(--line);
+    }
+    .previewbox header h3{ margin:0; font-size:18px; color:var(--accent); font-weight:800 }
+    .previewbox .content{ padding:16px 18px }
+    .previewbox .actions{
+      display:flex; gap:10px; justify-content:flex-end; padding:0 18px 16px;
+    }
+    .openlink{
       display:inline-flex; gap:10px; align-items:center; justify-content:center;
-      border-radius:12px; padding:12px 18px; font-weight:700;
-      border:1px solid var(--accent); color:var(--accent); background:#fff;
+      border-radius:12px; padding:12px 18px; font-weight:800;
+      border:1px solid var(--accent); color:#fff; background:var(--accent);
+      text-decoration:none;
     }
-    .ghost:hover{ background:rgba(0,74,173,.06); text-decoration:none }
+    .openlink:hover{ filter:brightness(0.95); text-decoration:none }
 
-    @keyframes pulse{
-      0%,100%{ box-shadow:0 0 0 0 rgba(255,189,89,.45) }
-      50%{ box-shadow:0 0 0 12px rgba(255,189,89,0) }
-    }
-
-    /* SQL teaser block */
+    /* SQL teaser styles reused inside preview */
     .codewrap{
-      margin:28px auto 0; max-width:800px; text-align:left;
+      margin:12px 0 0; max-width:100%; text-align:left;
       background:var(--code-bg); border:1px solid #dfe7ff; border-radius:14px; box-shadow:var(--shadow);
       padding:16px 18px; overflow:auto;
     }
@@ -185,14 +175,14 @@
       width:30px; height:30px; display:inline-block; margin-bottom:12px;
       color:var(--accent);
     }
-    .icon.orange{ color:var(--brand) }
+    /* Reusable Patterns icon in BLUE now (use default .icon) */
 
     /* Mission */
     .mission{
       background:#fff; padding:56px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line);
     }
     .mission .inner{ max-width:900px; margin:0 auto; text-align:center; }
-    .mission h2{ margin:0 0 10px; color:var(--accent); font-size:clamp(24px,3.2vw,32px); font-weight:800; letter-spacing:-0.02em; }
+    .mission h2{ margin:0 0 10px; color:var(--brand); font-size:clamp(24px,3.2vw,32px); font-weight:800; letter-spacing:-0.02em; } /* ORANGE */
     .mission p{ margin:0; color:var(--text); opacity:.95 }
 
     /* Footer */
@@ -203,37 +193,12 @@
     footer a{ color:var(--accent); text-decoration:none; font-weight:700 }
     footer a:hover{ text-decoration:underline }
 
-    /* Modal */
-    .modal-backdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,.35);
-      display:none; align-items:center; justify-content:center; padding:24px; z-index:50;
-    }
-    .modal{
-      background:#fff; border-radius:16px; max-width:720px; width:100%;
-      border:1px solid var(--line); box-shadow:0 20px 60px rgba(0,0,0,.2);
-      overflow:hidden;
-    }
-    .modal header{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-      padding:14px 18px; border-bottom:1px solid var(--line);
-    }
-    .modal header h3{ margin:0; font-size:18px; color:var(--accent) }
-    .modal .content{ padding:16px 18px }
-    .closebtn{
-      border:none; background:transparent; font-size:20px; cursor:pointer; color:var(--muted)
-    }
-    .preview-actions{ display:flex; gap:10px; justify-content:flex-end; padding:0 18px 18px }
-
     /* Responsive cards */
     @media (max-width: 960px){ .card{ grid-column: span 6; } }
     @media (max-width: 640px){
       .menu{ gap:12px }
       .card{ grid-column: span 12; }
       .hero{ padding:56px 0 28px }
-    }
-    @media (prefers-reduced-motion: reduce){
-      .cta{ animation:none; transition:none }
-      .cta:hover{ transform:none }
     }
   </style>
 </head>
@@ -261,37 +226,32 @@
       <h1>Master SQL with Real Challenges</h1>
       <p>Manager-style prompts in pricing, retention, churn, and cost. Think → query → validate — and learn patterns you can reuse at work.</p>
 
-      <p style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-        <a class="cta" id="startChallengeCta" href="./playground.html">
-          <span class="dot" aria-hidden="true"></span>
-          Start Your Challenge
-        </a>
-        <a class="ghost" href="#" id="previewBtn" role="button" aria-haspopup="dialog" aria-controls="previewModal">
-          Preview Challenge
-        </a>
-      </p>
+      <!-- PREVIEW BOX replaces old CTA/buttons -->
+      <div class="previewbox" id="previewBox">
+        <header>
+          <h3>Preview: OS Share by Customer (Latest Active Key)</h3>
+        </header>
+        <div class="content">
+          <p><strong>Scenario:</strong> Your PM asks, “What OS do our customers most recently activate on?” Return customers by OS using each customer’s latest active key.</p>
 
-      <!-- SQL teaser -->
-      <div class="codewrap" aria-label="Sample SQL snippet">
-        <span class="badge">Sample</span>
-        <pre><code>-- OS share by customer (latest active key)
-WITH latest AS (
-  SELECT customer_id, MAX(activated_at) AS last_active
-  FROM keys
-  WHERE status = 'active'
-  GROUP BY customer_id
-),
-joined AS (
-  SELECT k.customer_id, k.os, 1 AS cnt
-  FROM keys k
-  JOIN latest l
-    ON k.customer_id = l.customer_id
-   AND k.activated_at = l.last_active
-)
-SELECT os, SUM(cnt) AS customers
-FROM joined
-GROUP BY os
-ORDER BY customers DESC;</code></pre>
+          <div class="codewrap">
+            <span class="badge">Starter Tables</span>
+            <pre><code>keys(customer_id, os, activated_at, status)
+-- status ∈ {'active','revoked'}</code></pre>
+          </div>
+
+          <div class="codewrap">
+            <span class="badge">Expected Output (shape)</span>
+            <pre><code>os      customers
+------  ---------
+iOS     142
+Android  96
+Other    11</code></pre>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="openlink" href="./playground.html" id="openPlayground">Open in Playground →</a>
+        </div>
       </div>
     </div>
   </section>
@@ -305,7 +265,7 @@ ORDER BY customers DESC;</code></pre>
           <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 2c.6 0 6 7 6 11a6 6 0 11-12 0c0-4 5.4-11 6-11z"/>
           </svg>
-          <h3 style="color:var(--accent)">Real Prompts</h3>
+          <h3>Real Prompts</h3>
           <p>Manager questions grounded in real metrics—pricing, retention, churn, cost.</p>
         </article>
 
@@ -314,26 +274,26 @@ ORDER BY customers DESC;</code></pre>
           <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M4 4h16v4H4V4zm0 6h10v4H4v-4zm0 6h16v4H4v-4z"/>
           </svg>
-          <h3 style="color:var(--accent)">Step-by-Step</h3>
+          <h3>Step-by-Step</h3>
           <p>Think → query → validate. Short stages keep focus tight and feedback fast.</p>
         </article>
 
         <article class="card">
-          <!-- orange bars (results) -->
-          <svg class="icon orange" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <!-- Reusable Patterns icon in BLUE now (no .orange class) -->
+          <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M5 20V10h3v10H5zm5 0V6h3v14h-3zm5 0V3h3v17h-3z"/>
           </svg>
-          <h3 style="color:var(--accent)">Reusable Patterns</h3>
+          <h3>Reusable Patterns</h3>
           <p>Build mental models you can bring straight into your next role.</p>
         </article>
       </div>
     </div>
   </section>
 
-  <!-- Mission (bottom) -->
+  <!-- Mission -->
   <section class="mission">
     <div class="wrap inner">
-      <h2>Group by SQL. Grow Together.</h2>
+      <h2>Group by SQL. Grow Together.</h2> <!-- now orange via CSS above -->
       <p>
         Train on real business prompts, validate each step, and learn patterns you can reuse at work.
         Challenges are short, realistic, and designed to build confidence fast.
@@ -357,41 +317,10 @@ ORDER BY customers DESC;</code></pre>
     </div>
   </footer>
 
-  <!-- Preview Modal -->
-  <div class="modal-backdrop" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
-    <div class="modal">
-      <header>
-        <h3 id="previewTitle">Preview: OS Share by Customer (Latest Active Key)</h3>
-        <button class="closebtn" id="closePreview" aria-label="Close preview">✕</button>
-      </header>
-      <div class="content">
-        <p><strong>Scenario:</strong> Your PM asks, “What OS do our customers most recently activate on?” Return customers by OS using each customer’s latest active key.</p>
-        <div class="codewrap" style="margin:12px 0 0">
-          <span class="badge">Starter Tables</span>
-          <pre><code>keys(customer_id, os, activated_at, status)
--- status ∈ {'active','revoked'}</code></pre>
-        </div>
-        <div class="codewrap" style="margin:12px 0 0">
-          <span class="badge">Expected Output (shape)</span>
-          <pre><code>os      customers
-------  ---------
-iOS     142
-Android  96
-Other    11</code></pre>
-        </div>
-      </div>
-      <div class="preview-actions">
-        <a class="ghost" href="./playground.html" id="previewStart">Open in Playground</a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Anonymous event logger (Google Apps Script + GA4 custom events) -->
+  <!-- Event logging -->
   <script>
-    // === Configure your Google Apps Script web app endpoint ===
     const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL'; // <-- replace with your deployed Web App URL
 
-    // Create/reuse an anonymous session id (no PII)
     (function ensureSession(){
       try{
         if(!localStorage.getItem('session_id')){
@@ -399,92 +328,41 @@ Other    11</code></pre>
             : 'sid-' + Math.random().toString(36).slice(2) + Date.now();
           localStorage.setItem('session_id', uuid);
         }
-      }catch(e){ /* ignore */ }
+      }catch(e){}
     })();
-    function getSid(){ try{ return localStorage.getItem('session_id') || 'unknown'; }catch(e){ return 'unknown'; } }
+    function sid(){ try{ return localStorage.getItem('session_id') || 'unknown'; }catch(e){ return 'unknown'; } }
 
-    // Minimal logger to Google Sheet via Apps Script
     function logToSheet(event_type, extra={}){
-      if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS_SCRIPT_URL')) return; // skip if not configured
-      const payload = {
-        session_id: getSid(),
-        page: location.pathname,
-        event_type,
-        ...extra
-      };
+      if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS_SCRIPT_URL')) return;
+      const payload = { session_id: sid(), page: location.pathname, event_type, ...extra };
       try{
         const blob = new Blob([JSON.stringify(payload)], {type:'application/json'});
-        if(navigator.sendBeacon && (event_type === 'page_active_seconds' || event_type === 'nav_click' || event_type === 'start_challenge' || event_type === 'preview_open')){
-          navigator.sendBeacon(APPS_SCRIPT_URL, blob);
-          return;
-        }
+        if(navigator.sendBeacon){ navigator.sendBeacon(APPS_SCRIPT_URL, blob); return; }
       }catch(e){}
       fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) }).catch(()=>{});
     }
 
-    // Page timing: measure active seconds and send on exit
-    let pageStart = Date.now();
-    window.addEventListener('pagehide', function(){
-      const secs = Math.round((Date.now() - pageStart)/1000);
+    let start = Date.now();
+    window.addEventListener('pagehide', ()=>{
+      const secs = Math.round((Date.now()-start)/1000);
       logToSheet('page_active_seconds', { seconds: secs });
       if(window.gtag){ gtag('event','page_active_seconds', { value: secs }); }
     });
 
-    // CTA: start challenge
-    const cta = document.getElementById('startChallengeCta');
-    if(cta){
-      cta.addEventListener('click', function(){
-        logToSheet('start_challenge');
-        if(window.gtag){ gtag('event','start_challenge', { page: location.pathname }); }
-      });
-    }
-
-    // Nav clicks
-    const nav = document.getElementById('topNav');
-    if(nav){
-      nav.addEventListener('click', function(e){
-        const a = e.target.closest('a');
-        if(!a) return;
-        const label = (a.getAttribute('href') || '').trim();
-        logToSheet('nav_click', { label });
-        if(window.gtag){ gtag('event','nav_click', { label }); }
-      });
-    }
-    const brand = document.getElementById('brandLink');
-    if(brand){
-      brand.addEventListener('click', function(){
-        logToSheet('nav_click', { label:'brand_home' });
-        if(window.gtag){ gtag('event','nav_click', { label:'brand_home' }); }
-      });
-    }
-
-    // Preview modal interactivity
-    const previewBtn = document.getElementById('previewBtn');
-    const previewModal = document.getElementById('previewModal');
-    const closePreview = document.getElementById('closePreview');
-    const previewStart = document.getElementById('previewStart');
-
-    function openModal(){
-      previewModal.style.display='flex';
-      document.body.style.overflow='hidden';
-      logToSheet('preview_open');
-      if(window.gtag){ gtag('event','preview_open'); }
-    }
-    function closeModal(){
-      previewModal.style.display='none';
-      document.body.style.overflow='';
-      logToSheet('preview_close');
-      if(window.gtag){ gtag('event','preview_close'); }
-    }
-    if(previewBtn){ previewBtn.addEventListener('click', (e)=>{ e.preventDefault(); openModal(); }); }
-    if(closePreview){ closePreview.addEventListener('click', closeModal); }
-    if(previewModal){
-      previewModal.addEventListener('click', (e)=>{ if(e.target === previewModal) closeModal(); });
-      document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && previewModal.style.display==='flex') closeModal(); });
-    }
-    if(previewStart){
-      previewStart.addEventListener('click', ()=>{ logToSheet('start_challenge_from_preview'); if(window.gtag){ gtag('event','start_challenge_from_preview'); } });
-    }
+    // Nav + open playground events
+    document.getElementById('topNav')?.addEventListener('click', (e)=>{
+      const a = e.target.closest('a'); if(!a) return;
+      logToSheet('nav_click', { label: a.getAttribute('href')||'' });
+      if(window.gtag){ gtag('event','nav_click', { label: a.getAttribute('href')||'' }); }
+    });
+    document.getElementById('brandLink')?.addEventListener('click', ()=>{
+      logToSheet('nav_click', { label:'brand_home' });
+      if(window.gtag){ gtag('event','nav_click', { label:'brand_home' }); }
+    });
+    document.getElementById('openPlayground')?.addEventListener('click', ()=>{
+      logToSheet('start_challenge_from_preview');
+      if(window.gtag){ gtag('event','start_challenge_from_preview'); }
+    });
   </script>
 </body>
 </html>
