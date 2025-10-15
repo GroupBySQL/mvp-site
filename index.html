@@ -34,6 +34,11 @@
       --shadow:0 6px 18px rgba(0,0,0,.06);
       --code:#0b1020;     /* near-black for code */
       --code-bg:#f5f8ff;  /* very light blue for code bg */
+
+      /* Proportional brand lockup sizes */
+      --logo-h-desktop: 72px;
+      --logo-h-tablet:  56px;
+      --logo-h-phone:   48px;
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -55,18 +60,45 @@
     }
     .nav{
       display:flex; align-items:center; justify-content:space-between; gap:16px;
-      padding:10px 0;
+      padding:12px 0; /* tighter */
     }
-    .brand{
-      display:flex; align-items:center; gap:12px; min-width:0;
-    }
-    /* Responsive logo sizes: 120 desktop, 96 tablet, 72 phone */
-    .brand img{ height:120px; width:auto; display:block }
-    @media (max-width: 960px){ .brand img{ height:96px } }
-    @media (max-width: 640px){ .brand img{ height:72px } }
 
-    .brand .word{ font-weight:800; letter-spacing:-0.02em; font-size:18px; color:var(--text); white-space:nowrap }
-    .brand .word b{ color:var(--accent) }
+    /* Brand lockup */
+    .brand{
+      display:flex; align-items:center; gap:10px; min-width:0;
+    }
+    /* Teardrop “g” as background to ignore PNG internal padding */
+    .gmark{
+      height: var(--logo-h-desktop);
+      width:  calc(var(--logo-h-desktop) * 0.82); /* tweak 0.78–0.88 if needed */
+      background: url("./G.png?v=6") center/contain no-repeat;
+      display:inline-block;
+    }
+    .brand .word{
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      color: var(--accent);
+      line-height: 1;
+      font-size: calc(var(--logo-h-desktop) * 0.34); /* scales with logo */
+    }
+    @media (max-width: 960px){
+      .gmark{
+        height: var(--logo-h-tablet);
+        width:  calc(var(--logo-h-tablet) * 0.82);
+      }
+      .brand .word{
+        font-size: calc(var(--logo-h-tablet) * 0.34);
+      }
+    }
+    @media (max-width: 640px){
+      .gmark{
+        height: var(--logo-h-phone);
+        width:  calc(var(--logo-h-phone) * 0.82);
+      }
+      .brand .word{
+        font-size: calc(var(--logo-h-phone) * 0.34);
+      }
+    }
     .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
 
     .menu{ display:flex; align-items:center; gap:20px; flex-wrap:wrap }
@@ -104,14 +136,12 @@
       background:var(--brand); color:#1b1b1b; border-radius:12px;
       padding:12px 22px; font-weight:800; letter-spacing:.2px; box-shadow:var(--shadow);
       border:1px solid rgba(0,0,0,.04); transition:transform .06s ease, background .15s ease, box-shadow .15s ease;
-      position:relative;
-      animation:pulse 2.2s ease-in-out infinite;
+      position:relative; animation:pulse 2.2s ease-in-out infinite;
     }
     .cta:hover{ background:#ffc978; text-decoration:none; transform:translateY(-1px); box-shadow:0 10px 24px rgba(0,0,0,.10); }
     .cta:active{ transform:translateY(0) }
     .cta .dot{ width:8px; height:8px; border-radius:999px; background:var(--accent) }
 
-    /* Secondary link */
     .ghost{
       display:inline-flex; gap:10px; align-items:center; justify-content:center;
       border-radius:12px; padding:12px 18px; font-weight:700;
@@ -209,80 +239,20 @@
 </head>
 <body>
   <!-- Header -->
-<header>
-  <div class="wrap nav">
-    <a class="brand" href="./" id="brandLink" aria-label="GroupBySQL Home">
-      <span class="gmark" aria-hidden="true"></span>
-      <span class="word">
-        <span class="sr-only">GroupBy </span><b>SQL</b>
-      </span>
-    </a>
-    <nav class="menu" aria-label="Main" id="topNav">
-      <a href="./">Home</a>
-      <a href="./playground.html">Challenges</a>
-      <a href="./community.html">Community</a>
-      <a href="./about.html">About</a>
-    </nav>
-  </div>
-</header>
-
-  /* === Proportional brand lockup === */
-:root{
-  /* keep your requested sizes; change here if you want larger */
-  --logo-h-desktop: 72px;
-  --logo-h-tablet:  56px;
-  --logo-h-phone:   48px;
-}
-
-/* Header spacing a touch tighter so the brand feels cohesive */
-.nav{ padding: 12px 0; }
-
-/* Brand row */
-.brand{
-  display:flex; align-items:center; gap:10px; min-width:0;
-}
-
-/* Teardrop “g” as background to ignore PNG’s internal padding */
-.gmark{
-  height: var(--logo-h-desktop);
-  width:  calc(var(--logo-h-desktop) * 0.82); /* tweak 0.78–0.88 to fit your glyph */
-  background: url("./G.png?v=6") center/contain no-repeat;
-  display:inline-block;
-}
-
-/* Wordmark scales with logo height so proportions stay consistent */
-.brand .word{
-  font-weight: 900;
-  letter-spacing: -0.01em;       /* reduce the wide feel you’re seeing */
-  color: var(--accent);          /* your deep blue */
-  line-height: 1;
-  font-size: calc(var(--logo-h-desktop) * 0.34); /* 0.32–0.36 usually looks right */
-  /* vertical nudge if needed (comment in/out):
-     transform: translateY(1px);
-  */
-}
-
-/* Tablet */
-@media (max-width: 960px){
-  .gmark{
-    height: var(--logo-h-tablet);
-    width:  calc(var(--logo-h-tablet) * 0.82);
-  }
-  .brand .word{
-    font-size: calc(var(--logo-h-tablet) * 0.34);
-  }
-}
-
-/* Phone */
-@media (max-width: 640px){
-  .gmark{
-    height: var(--logo-h-phone);
-    width:  calc(var(--logo-h-phone) * 0.82);
-  }
-  .brand .word{
-    font-size: calc(var(--logo-h-phone) * 0.34);
-  }
-}
+  <header>
+    <div class="wrap nav">
+      <a class="brand" href="./" id="brandLink" aria-label="GroupBySQL Home">
+        <span class="gmark" aria-hidden="true"></span>
+        <span class="word"><span class="sr-only">GroupBy </span><b>SQL</b></span>
+      </a>
+      <nav class="menu" aria-label="Main" id="topNav">
+        <a href="./">Home</a>
+        <a href="./playground.html">Challenges</a>
+        <a href="./community.html">Community</a>
+        <a href="./about.html">About</a>
+      </nav>
+    </div>
+  </header>
 
   <!-- Hero -->
   <section class="hero">
