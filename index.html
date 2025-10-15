@@ -36,9 +36,10 @@
       --code-bg:#f5f8ff;
 
       /* Proportional brand lockup sizes */
-      --logo-h-desktop: 72px;
-      --logo-h-tablet:  56px;
-      --logo-h-phone:   48px;
+      --logo-h-desktop: 96px;
+      --logo-h-tablet:  80px;
+      --logo-h-phone:   64px;
+      --logo-zoom: 1.8;
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -70,7 +71,10 @@
     .gmark{
       height: var(--logo-h-desktop);
       width:  calc(var(--logo-h-desktop) * 0.9);
-      background: url("./G.svg") center/contain no-repeat;
+      background: url("./G.svg") 
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: calc(var(--logo-zoom) * 100%) auto; /* <- zooms in */
       display:inline-block;
     }
     .brand .word{
@@ -82,11 +86,11 @@
     }
     .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
     @media (max-width: 960px){
-      .gmark{ height: var(--logo-h-tablet); width: calc(var(--logo-h-tablet) * 0.82); }
+      .gmark{ height: var(--logo-h-tablet); width: calc(var(--logo-h-tablet) * 0.95); }
       .brand .word{ font-size: calc(var(--logo-h-tablet) * 0.34); }
     }
     @media (max-width: 640px){
-      .gmark{ height: var(--logo-h-phone); width: calc(var(--logo-h-phone) * 0.82); }
+      .gmark{ height: var(--logo-h-phone); width: calc(var(--logo-h-phone) * 0.95); }
       .brand .word{ font-size: calc(var(--logo-h-phone) * 0.34); }
     }
 
