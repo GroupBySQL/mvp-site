@@ -33,11 +33,11 @@
       --radius:16px;
       --shadow:0 6px 18px rgba(0,0,0,.06);
 
-      /* Brand lockup */
-      --logo-h-desktop: 96px;
-      --logo-h-tablet:  80px;
-      --logo-h-phone:   64px;
-      --logo-zoom: 1.9;  /* zooms SVG to counter any empty viewBox space */
+      /* Brand lockup (15% smaller than 96/80/64) */
+      --logo-h-desktop: 82px;  /* ~-15% from 96 */
+      --logo-h-tablet:  68px;  /* ~-15% from 80 */
+      --logo-h-phone:   54px;  /* ~-15% from 64 */
+      --logo-zoom: 1.8;  /* slightly reduced zoom to avoid clipping */
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -121,7 +121,7 @@
       max-width:60ch;
     }
 
-    /* Preview box (no SQL blocks; smaller text) */
+    /* Preview box (PM question only; smaller text) */
     .previewbox{
       margin:26px auto 0; max-width:800px; text-align:left;
       background:#fff; border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow);
@@ -136,7 +136,7 @@
     .previewbox .content{ padding:14px 16px }
     .pmq{ margin:0; font-size:0.95rem; color:#0b2545 }
     .previewbox .actions{
-      display:flex; gap:10px; justify-content:center; padding:12px 16px 16px; /* centered buttons */
+      display:flex; gap:10px; justify-content:center; padding:12px 16px 16px;
     }
     .btn{
       display:inline-flex; gap:10px; align-items:center; justify-content:center;
@@ -144,8 +144,6 @@
     }
     .btn.primary{ background:var(--brand); color:#1b1b1b; border:1px solid rgba(0,0,0,.06); }
     .btn.primary:hover{ filter:brightness(1.05); text-decoration:none }
-    .btn.outline{ background:#fff; color:var(--accent); border:1px solid var(--accent); }
-    .btn.outline:hover{ background:rgba(0,74,173,.06); text-decoration:none }
 
     /* Features */
     .features{ padding:54px 0 }
@@ -157,7 +155,7 @@
     .card h3{ margin:0 0 6px; font-size:20px; color:var(--accent); font-weight:800 }
     .card p{ margin:0; color:var(--text); opacity:.95 }
     .icon{ width:30px; height:30px; display:inline-block; margin-bottom:12px; color:var(--accent); }
-    /* Reusable Patterns icon is BLUE now (default .icon) */
+    /* Reusable Patterns icon is BLUE by default */
 
     /* Mission */
     .mission{ background:#fff; padding:56px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
@@ -207,15 +205,14 @@
       <!-- PREVIEW BOX (PM question only) -->
       <div class="previewbox" id="previewBox">
         <header>
-          <h3>Preview: Challenge 1 — OS Share by Customer (Latest Active Key)</h3>
+          <h3>Preview: Executive ask - how many of our customers are OnPrem vs Hybrid?</h3>
         </header>
         <div class="content">
-          <p class="pmq"><strong>PM Question:</strong> “What OS do our customers most recently activate on?” Return customers by OS using each customer’s latest active key.</p>
+          <p class="pmq">Answer using each customer’s latest deployment status.</p>
         </div>
         <div class="actions">
-          <a class="btn primary" href="./playground.html" id="tryNowBtn">Try now!</a>
-          <!-- Update this href to your Dojo route/file -->
-          <a class="btn outline" href="./dojo.html" id="openDojoBtn">Open in SQL Dojo</a>
+          <!-- One combined CTA -->
+          <a class="btn primary" href="./playground.html" id="dojoBtn">Try now! Open SQL Dojo</a>
         </div>
       </div>
     </div>
@@ -244,7 +241,7 @@
         </article>
 
         <article class="card">
-          <!-- Reusable Patterns icon stays BLUE (no orange class) -->
+          <!-- Reusable Patterns icon stays BLUE -->
           <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M5 20V10h3v10H5zm5 0V6h3v14h-3zm5 0V3h3v17h-3z"/>
           </svg>
@@ -325,11 +322,8 @@
       if(window.gtag){ gtag('event','nav_click', { label:'brand_home' }); }
     });
 
-    document.getElementById('tryNowBtn')?.addEventListener('click', ()=>{
-      logToSheet('try_now');
-      if(window.gtag){ gtag('event','try_now'); }
-    });
-    document.getElementById('openDojoBtn')?.addEventListener('click', ()=>{
+    // Single combined CTA
+    document.getElementById('dojoBtn')?.addEventListener('click', ()=>{
       logToSheet('open_sql_dojo');
       if(window.gtag){ gtag('event','open_sql_dojo'); }
     });
