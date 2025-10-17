@@ -32,12 +32,6 @@
       --maxw:1200px;
       --radius:16px;
       --shadow:0 6px 18px rgba(0,0,0,.06);
-
-      /* Brand lockup (15% smaller than 96/80/64) */
-      --logo-h-desktop: 82px;
-      --logo-h-tablet:  68px;
-      --logo-h-phone:   54px;
-      --logo-zoom: 1.5;  /* reduce zoom to avoid clipping */
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -71,33 +65,16 @@
       padding:12px 0;
     }
 
-    /* Brand lockup */
+    /* ===== Brand: full wordmark image ===== */
     .brand{ display:flex; align-items:center; gap:10px; min-width:0; }
-    .gmark{
-      height: var(--logo-h-desktop);
-      width:  calc(var(--logo-h-desktop) * 0.95);
-      background-image: url("./G.svg");
-      background-repeat: no-repeat;
-      background-position: center;
-      background-size: calc(var(--logo-zoom) * 100%) auto;
-      display:inline-block;
+    .brand-logo{
+      height:56px;        /* desktop */
+      width:auto;
+      display:block;
+      object-fit:contain;
     }
-    .brand .word{
-      font-weight: 900;
-      letter-spacing: -0.01em;
-      color: var(--accent);
-      line-height: 1;
-      font-size: calc(var(--logo-h-desktop) * 0.36);
-    }
-    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
-    @media (max-width: 960px){
-      .gmark{ height: var(--logo-h-tablet); width: calc(var(--logo-h-tablet) * 0.95); }
-      .brand .word{ font-size: calc(var(--logo-h-tablet) * 0.36); }
-    }
-    @media (max-width: 640px){
-      .gmark{ height: var(--logo-h-phone); width: calc(var(--logo-h-phone) * 0.95); }
-      .brand .word{ font-size: calc(var(--logo-h-phone) * 0.36); }
-    }
+    @media (max-width: 960px){ .brand-logo{ height:48px } } /* tablet */
+    @media (max-width: 640px){ .brand-logo{ height:40px } } /* phone */
 
     .menu{ display:flex; align-items:center; gap:20px; flex-wrap:wrap }
     .menu a{
@@ -112,7 +89,7 @@
         radial-gradient(1200px 600px at -10% 20%, rgba(0,74,173,.12), transparent 60%),
         var(--soft);
       padding:72px 0 40px;
-      border-bottom:0; /* removed divider for seamless sections */
+      border-bottom:0; /* seamless */
     }
     .hero .inner{ max-width:1000px; margin:0 auto; text-align:center; }
     .eyebrow{
@@ -191,8 +168,8 @@
   <header id="siteHeader">
     <div class="wrap nav">
       <a class="brand" href="./" id="brandLink" aria-label="GroupBySQL Home">
-        <span class="gmark" aria-hidden="true"></span>
-        <span class="word"><span class="sr-only">GroupBy </span><b>GroupBySQL</b></span>
+        <!-- Use your full wordmark image; encoded space in filename -->
+        <img src="./G%20(5).png" class="brand-logo" alt="GroupBy SQL" />
       </a>
       <nav class="menu" aria-label="Main" id="topNav">
         <a href="./">Home</a>
@@ -234,7 +211,7 @@
           <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 2c.6 0 6 7 6 11a6 6 0 11-12 0c0-4 5.4-11 6-11z"/>
           </svg>
-          <h3>Real Prompts</h3>
+        <h3>Real Prompts</h3>
           <p>Manager questions grounded in real metrics—pricing, retention, churn, cost. Solve problems that matter, not just syntax drills.</p>
         </article>
 
@@ -288,7 +265,7 @@
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFavS0r-rvCJY3KO9eCg682gCudh0HP0wVAnJ2z1PE-2dYTSEzfC4DiUZWm2fBu4Q7/exec';
 
-    // --- Session id
+    // Session id
     (function ensureSession(){
       try{
         if(!localStorage.getItem('session_id')){
@@ -300,29 +277,19 @@
     })();
     function sid(){ try{ return localStorage.getItem('session_id') || 'unknown'; }catch(e){ return 'unknown'; } }
 
-    // Verbose logger (headers + keepalive + console logs)
+    // Logger
     function logToSheet(event_type, extra = {}){
       if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS_SCRIPT_URL')){
         console.warn('APPS_SCRIPT_URL not set');
         return;
       }
-      const payload = {
-        session_id: sid(),
-        page: location.pathname,
-        event_type,
-        ...extra
-      };
-      console.log('[logToSheet] sending', payload);
-
+      const payload = { session_id: sid(), page: location.pathname, event_type, ...extra };
       fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
         keepalive: true
-      })
-      .then(r => r.text().catch(()=>''))   // shows "ok" if readable
-      .then(t => console.log('[logToSheet] response:', t))
-      .catch(err => console.error('[logToSheet] error:', err));
+      }).catch(()=>{});
     }
 
     // Page active seconds
@@ -348,7 +315,7 @@
     // CTA handler
     const dojo = document.getElementById('dojoBtn');
     dojo?.addEventListener('click', (e)=>{
-      e.preventDefault(); // don't leave the page instantly
+      e.preventDefault();
       logToSheet('open_sql_dojo');
       if(window.gtag){ gtag('event','open_sql_dojo'); }
       setTimeout(()=>{ location.href = dojo.getAttribute('href'); }, 120);
@@ -356,7 +323,7 @@
 
     // Toggle header style when scrolling past the hero
     (function(){
-      const headerEl = document.getElementById('siteHeader');
+      const headerEl = document.getElementById('siteHeader') || document.querySelector('header');
       const heroEl = document.querySelector('.hero');
       if(!headerEl || !heroEl) return;
       function onScroll(){
