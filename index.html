@@ -5,15 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>GroupBy SQL — Practice Real-World SQL</title>
 
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-7BWSYYY018"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-7BWSYYY018');
-</script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-7BWSYYY018"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-7BWSYYY018');
+  </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,10 +34,10 @@
       --shadow:0 6px 18px rgba(0,0,0,.06);
 
       /* Brand lockup (15% smaller than 96/80/64) */
-      --logo-h-desktop: 82px;  /* ~-15% from 96 */
-      --logo-h-tablet:  68px;  /* ~-15% from 80 */
-      --logo-h-phone:   54px;  /* ~-15% from 64 */
-      --logo-zoom: 1.5;  /* slightly reduced zoom to avoid clipping */
+      --logo-h-desktop: 82px;
+      --logo-h-tablet:  68px;
+      --logo-h-phone:   54px;
+      --logo-zoom: 1.5;  /* reduce zoom to avoid clipping */
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -68,10 +67,10 @@
     .gmark{
       height: var(--logo-h-desktop);
       width:  calc(var(--logo-h-desktop) * 0.95);
-      background-image: url("./G.svg");  /* use your SVG */
+      background-image: url("./G.svg");
       background-repeat: no-repeat;
       background-position: center;
-      background-size: calc(var(--logo-zoom) * 100%) auto; /* zoom in */
+      background-size: calc(var(--logo-zoom) * 100%) auto;
       display:inline-block;
     }
     .brand .word{
@@ -79,7 +78,7 @@
       letter-spacing: -0.01em;
       color: var(--accent);
       line-height: 1;
-      font-size: calc(var(--logo-h-desktop) * 0.36); /* scales with logo */
+      font-size: calc(var(--logo-h-desktop) * 0.36);
     }
     .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
     @media (max-width: 960px){
@@ -156,12 +155,11 @@
     .card h3{ margin:0 0 6px; font-size:20px; color:var(--accent); font-weight:800 }
     .card p{ margin:0; color:var(--text); opacity:.95 }
     .icon{ width:30px; height:30px; display:inline-block; margin-bottom:12px; color:var(--accent); }
-    /* Reusable Patterns icon is BLUE by default */
 
     /* Mission */
     .mission{ background:#fff; padding:56px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
     .mission .inner{ max-width:900px; margin:0 auto; text-align:center; }
-    .mission h2{ margin:0 0 10px; color:var(--brand); font-size:clamp(24px,3.2vw,32px); font-weight:800; letter-spacing:-0.02em; } /* ORANGE */
+    .mission h2{ margin:0 0 10px; color:var(--brand); font-size:clamp(24px,3.2vw,32px); font-weight:800; letter-spacing:-0.02em; }
     .mission p{ margin:0; color:var(--text); opacity:.95 }
 
     /* Footer */
@@ -224,7 +222,6 @@
     <div class="wrap">
       <div class="grid">
         <article class="card">
-          <!-- droplet icon (query) -->
           <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M12 2c.6 0 6 7 6 11a6 6 0 11-12 0c0-4 5.4-11 6-11z"/>
           </svg>
@@ -233,7 +230,6 @@
         </article>
 
         <article class="card">
-          <!-- blue table icon (steps) -->
           <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M4 4h16v4H4V4zm0 6h10v4H4v-4zm0 6h16v4H4v-4z"/>
           </svg>
@@ -242,7 +238,6 @@
         </article>
 
         <article class="card">
-          <!-- Reusable Patterns icon stays BLUE -->
           <svg class="icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M5 20V10h3v10H5zm5 0V6h3v14h-3zm5 0V3h3v17h-3z"/>
           </svg>
@@ -256,12 +251,11 @@
   <!-- Mission -->
   <section class="mission">
     <div class="wrap inner">
-      <h2>Group by SQL. Grow Together.</h2> <!-- orange via CSS -->
+      <h2>Group by SQL. Grow Together.</h2>
       <p>
         At GroupBySQL, we believe real skill isn’t about memorizing syntax or measured by how many questions you clear — it’s how well you think through them.
         Syntax can always be looked up, but logic takes intention, structure, and practice.
         Our challenges are short, grounded in real business problems — pricing, retention, churn, and beyond — designed to strengthen how you reason, not just how you remember.
-    
       </p>
     </div>
   </section>
@@ -283,8 +277,9 @@
 
   <!-- Lightweight event logging -->
   <script>
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFavS0r-rvCJY3KO9eCg682gCudh0HP0wVAnJ2z1PE-2dYTSEzfC4DiUZWm2fBu4Q7/exec'; // <-- replace with your deployed Web App URL
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzFavS0r-rvCJY3KO9eCg682gCudh0HP0wVAnJ2z1PE-2dYTSEzfC4DiUZWm2fBu4Q7/exec';
 
+    // --- Session id
     (function ensureSession(){
       try{
         if(!localStorage.getItem('session_id')){
@@ -296,16 +291,32 @@
     })();
     function sid(){ try{ return localStorage.getItem('session_id') || 'unknown'; }catch(e){ return 'unknown'; } }
 
-    function logToSheet(event_type, extra={}){
-      if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS_SCRIPT_URL')) return;
-      const payload = { session_id: sid(), page: location.pathname, event_type, ...extra };
-      try{
-        const blob = new Blob([JSON.stringify(payload)], {type:'application/json'});
-        if(navigator.sendBeacon){ navigator.sendBeacon(APPS_SCRIPT_URL, blob); return; }
-      }catch(e){}
-      fetch(APPS_SCRIPT_URL, { method:'POST', body: JSON.stringify(payload) }).catch(()=>{});
+    // --- STEP 4: Verbose logger (headers + keepalive + console logs)
+    function logToSheet(event_type, extra = {}){
+      if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS_SCRIPT_URL')){
+        console.warn('APPS_SCRIPT_URL not set');
+        return;
+      }
+      const payload = {
+        session_id: sid(),
+        page: location.pathname,
+        event_type,
+        ...extra
+      };
+      console.log('[logToSheet] sending', payload);
+
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true
+      })
+      .then(r => r.text().catch(()=>''))   // shows "ok" if readable
+      .then(t => console.log('[logToSheet] response:', t))
+      .catch(err => console.error('[logToSheet] error:', err));
     }
 
+    // --- Page active seconds
     let start = Date.now();
     window.addEventListener('pagehide', ()=>{
       const secs = Math.round((Date.now()-start)/1000);
@@ -313,7 +324,7 @@
       if(window.gtag){ gtag('event','page_active_seconds', { value: secs }); }
     });
 
-    // Nav + CTA events
+    // --- Nav events
     document.getElementById('topNav')?.addEventListener('click', (e)=>{
       const a = e.target.closest('a'); if(!a) return;
       const label = a.getAttribute('href')||'';
@@ -325,10 +336,13 @@
       if(window.gtag){ gtag('event','nav_click', { label:'brand_home' }); }
     });
 
-    // Single combined CTA
-    document.getElementById('dojoBtn')?.addEventListener('click', ()=>{
+    // --- STEP 3: Attach handler to dojoBtn and delay navigation ~120ms
+    const dojo = document.getElementById('dojoBtn');
+    dojo?.addEventListener('click', (e)=>{
+      e.preventDefault(); // don't leave the page instantly
       logToSheet('open_sql_dojo');
       if(window.gtag){ gtag('event','open_sql_dojo'); }
+      setTimeout(()=>{ location.href = dojo.getAttribute('href'); }, 120);
     });
   </script>
 </body>
