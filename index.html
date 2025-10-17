@@ -51,12 +51,21 @@
     a:hover{ text-decoration:underline }
     .wrap{ max-width:var(--maxw); margin:0 auto; padding:0 24px }
 
-    /* Header */
+    /* ===== Header (seamless over hero) ===== */
     header{
-      position:sticky; top:0; z-index:20; background:#fff;
+      position:sticky; top:0; z-index:20;
+      background: transparent;         /* transparent at top to blend with hero */
+      border-bottom: 0;                /* no border at top of page */
+      backdrop-filter: none;           /* no blur halo */
+      transition: background .18s ease, border-color .18s ease;
+    }
+    /* When scrolled past the hero, make header solid for readability */
+    header.scrolled{
+      background:#fff;
       border-bottom:1px solid var(--line);
       backdrop-filter:saturate(140%) blur(4px);
     }
+
     .nav{
       display:flex; align-items:center; justify-content:space-between; gap:16px;
       padding:12px 0;
@@ -96,14 +105,14 @@
     }
     .menu a:hover{ background:rgba(0,74,173,.08) }
 
-    /* Hero with subtle brand gradient */
+    /* ===== Hero with subtle brand gradient ===== */
     .hero{
       background:
         radial-gradient(1200px 500px at 85% -10%, rgba(255,189,89,.22), transparent 60%),
         radial-gradient(1200px 600px at -10% 20%, rgba(0,74,173,.12), transparent 60%),
         var(--soft);
       padding:72px 0 40px;
-      border-bottom:1px solid var(--line);
+      border-bottom:0; /* removed divider for seamless sections */
     }
     .hero .inner{ max-width:1000px; margin:0 auto; text-align:center; }
     .eyebrow{
@@ -145,7 +154,7 @@
     .btn.primary{ background:var(--brand); color:#1b1b1b; border:1px solid rgba(0,0,0,.06); }
     .btn.primary:hover{ filter:brightness(1.05); text-decoration:none }
 
-    /* Features */
+    /* ===== Features ===== */
     .features{ padding:54px 0 }
     .features .grid{ display:grid; gap:22px; grid-template-columns: repeat(12, 1fr); }
     .card{
@@ -156,14 +165,14 @@
     .card p{ margin:0; color:var(--text); opacity:.95 }
     .icon{ width:30px; height:30px; display:inline-block; margin-bottom:12px; color:var(--accent); }
 
-    /* Mission */
-    .mission{ background:#fff; padding:56px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    /* ===== Mission (no borders) ===== */
+    .mission{ background:#fff; padding:56px 0; border-top:0; border-bottom:0; }
     .mission .inner{ max-width:900px; margin:0 auto; text-align:center; }
     .mission h2{ margin:0 0 10px; color:var(--brand); font-size:clamp(24px,3.2vw,32px); font-weight:800; letter-spacing:-0.02em; }
     .mission p{ margin:0; color:var(--text); opacity:.95 }
 
-    /* Footer */
-    footer{ background:#fff; border-top:1px solid var(--line); padding:24px 0; text-align:center; color:var(--text); }
+    /* ===== Footer (no top border) ===== */
+    footer{ background:#fff; border-top:0; padding:24px 0; text-align:center; color:var(--text); }
     footer .links{ display:flex; gap:16px; justify-content:center; flex-wrap:wrap; margin:10px 0 6px }
     footer a{ color:var(--accent); text-decoration:none; font-weight:700 }
     footer a:hover{ text-decoration:underline }
@@ -179,7 +188,7 @@
 </head>
 <body>
   <!-- Header -->
-  <header>
+  <header id="siteHeader">
     <div class="wrap nav">
       <a class="brand" href="./" id="brandLink" aria-label="GroupBySQL Home">
         <span class="gmark" aria-hidden="true"></span>
@@ -291,7 +300,7 @@
     })();
     function sid(){ try{ return localStorage.getItem('session_id') || 'unknown'; }catch(e){ return 'unknown'; } }
 
-    // --- STEP 4: Verbose logger (headers + keepalive + console logs)
+    // Verbose logger (headers + keepalive + console logs)
     function logToSheet(event_type, extra = {}){
       if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS_SCRIPT_URL')){
         console.warn('APPS_SCRIPT_URL not set');
@@ -316,7 +325,7 @@
       .catch(err => console.error('[logToSheet] error:', err));
     }
 
-    // --- Page active seconds
+    // Page active seconds
     let start = Date.now();
     window.addEventListener('pagehide', ()=>{
       const secs = Math.round((Date.now()-start)/1000);
@@ -324,7 +333,7 @@
       if(window.gtag){ gtag('event','page_active_seconds', { value: secs }); }
     });
 
-    // --- Nav events
+    // Nav events
     document.getElementById('topNav')?.addEventListener('click', (e)=>{
       const a = e.target.closest('a'); if(!a) return;
       const label = a.getAttribute('href')||'';
@@ -336,7 +345,7 @@
       if(window.gtag){ gtag('event','nav_click', { label:'brand_home' }); }
     });
 
-    // --- STEP 3: Attach handler to dojoBtn and delay navigation ~120ms
+    // CTA handler
     const dojo = document.getElementById('dojoBtn');
     dojo?.addEventListener('click', (e)=>{
       e.preventDefault(); // don't leave the page instantly
@@ -344,6 +353,20 @@
       if(window.gtag){ gtag('event','open_sql_dojo'); }
       setTimeout(()=>{ location.href = dojo.getAttribute('href'); }, 120);
     });
+
+    // Toggle header style when scrolling past the hero
+    (function(){
+      const headerEl = document.getElementById('siteHeader');
+      const heroEl = document.querySelector('.hero');
+      if(!headerEl || !heroEl) return;
+      function onScroll(){
+        const heroBottom = heroEl.getBoundingClientRect().bottom;
+        if (heroBottom <= 0) headerEl.classList.add('scrolled');
+        else headerEl.classList.remove('scrolled');
+      }
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+    })();
   </script>
 </body>
 </html>
